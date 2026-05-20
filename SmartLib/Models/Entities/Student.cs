@@ -4,7 +4,7 @@ public class Student
 {
     public int StudentId { get; set; }
     public string UserId { get; set; } = string.Empty;
-    public User? user { get; set; }
+    public ApplicationUser? user { get; set; }
     public string Section { get; set; } = string.Empty;
     public string YearLevel { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
