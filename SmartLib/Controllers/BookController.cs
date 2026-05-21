@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartLib.Data;
+using SmartLib.Interfaces;
 using SmartLib.Models.Dto;
 using SmartLib.Models.Entities;
 
@@ -16,64 +17,115 @@ namespace SmartLib.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
 
-        BookController(ApplicationDbContext context, IMapper mapper)
+        private readonly IBookRepository _book;
+
+        public BookController(ApplicationDbContext context, IMapper mapper, IBookRepository book)
         {
             _context = context;
             _mapper = mapper;
+            _book = book;
         }
 
         // GET: api/<BookController>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BookDto>>> Get()
+        public async Task<ActionResult<IEnumerable<BookDto>>> GetAllBooks()
         {
-            var books = await _context.Books.ToListAsync();
-            var bookDto = _mapper.Map<IEnumerable<BookDto>>(books);
-            return Ok(bookDto);
+            var entities = await _context.Books.ToListAsync();
+            var dtos = _mapper.Map<IEnumerable<BookDto>>(entities);
+            return Ok(dtos);
         }
 
         // GET api/<BookController>/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<BookDto>> Get(int id)
+        public async Task<ActionResult<BookDto>> GetBookById(int id)
         {
-            var book = await _context.Books.FindAsync(id);
-            if (book == null)
+            var entity = await _context.Books.FindAsync(id);
+            if (entity == null)
             {
                 return NotFound();
             }
 
-            var bookDto = _mapper.Map<BookDto>(book);
-            return Ok(bookDto);
+            var dto = _mapper.Map<BookDto>(entity);
+            return Ok(dto);
         }
 
         // POST api/<BookController>
         [HttpPost]
-        public async Task<ActionResult<BookDto>> CreateBook(int id, BookDto request)
+        public async Task<ActionResult<BookDto>> CreateBook(BookDto request)
         {
-            var result = await _context.Books.FindAsync(id);
-
-            if (result == null)
+            if (request == null)
             {
-                return NotFound($"{id} not found.");
+                return BadRequest("Book data is required.");
             }
 
-            var book = _mapper.Map<Book>(result);
-            await _context.AddAsync(book);
+            var result = await _context.Books.FirstOrDefaultAsync(b => b.Isbn == request.Isbn);
+
+            if (result != null)
+            {
+                return Conflict($"The isbn{request.Isbn} already exist.");
+            }
+
+            var entity = _mapper.Map<Book>(request);
+
+            await _context.AddAsync(entity);
             await _context.SaveChangesAsync();
 
-            var response = _mapper.Map<BookDto>(book);
-            return Ok(response);
+            var dto = _mapper.Map<BookDto>(entity);
+            return Ok(dto);
         }
 
         // PUT api/<BookController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<ActionResult<BookDto>> UpdateBook(int id, BookDto request)
         {
+            if (request == null)
+            {
+                return BadRequest("Book data is required.");
+            }
+
+            var entity = await _context.Books.FindAsync(id);
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            _mapper.Map(request, entity);
+            await _context.SaveChangesAsync();
+
+            var dto = _mapper.Map<BookDto>(entity);
+            return Ok(dto);
         }
 
         // DELETE api/<BookController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<ActionResult> DeleteBook(int id)
         {
+            var entity = await _context.Books.FindAsync(id);
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            _context.Remove(entity);
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
+
+        [HttpGet("name/{name}")]
+        public async Task<ActionResult<BookDto>> GetBookByName(string name)
+        {
+            var entities = await _context.Books.FirstOrDefaultAsync(b => b.Title == name);
+
+            if (entities == null)
+            {
+                return NotFound();
+            }
+
+            var dto = _mapper.Map<BookDto>(entities);
+            return Ok(dto);
+        }
+
     }
 }

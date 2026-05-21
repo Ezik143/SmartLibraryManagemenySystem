@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 using SmartLib.Data;
 using SmartLib.Models.Dto.Profiles;
 
@@ -28,6 +29,10 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("SmartLib API");
+    });
 }
 
 app.UseHttpsRedirection();

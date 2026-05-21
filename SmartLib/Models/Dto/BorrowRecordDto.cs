@@ -4,6 +4,7 @@ namespace SmartLib.Models.Dto
 {
     public class BorrowRecordDto
     {
+        public int BorrowRecordId { get; set; }
         public string UserId { get; set; } = string.Empty;
         public int BookId { get; set; }
         public DateTime BorrowDate { get; set; }
