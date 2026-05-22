@@ -71,13 +71,16 @@ namespace SmartLib.Controllers
             if (borrowRecord.DueDate < currentDate)
             {
 
-                int num = (currentDate - borrowRecord.DueDate).Days;
+                int overdueDays = (currentDate - borrowRecord.DueDate).Days;
                 int finerate = 3;
                 int max = 30;
-                int days = Math.Min(num, max);
+                int days = Math.Min(overdueDays, max);
                 decimal fineAmount = finerate * days;
                 borrowRecord.FineAmount = fineAmount;
-
+            }
+            else
+            {
+                borrowRecord.FineAmount = 0;
             }
 
             var response = _mapper.Map<BorrowRecordDto>(borrowRecord);
@@ -153,6 +156,46 @@ namespace SmartLib.Controllers
             _context.Remove(entity);
             await _context.SaveChangesAsync();
             return NoContent();
+        }
+
+        [HttpPost("return/{returnBook}")]
+        public async Task<ActionResult<BorrowRecordDto>> ReturnBook(int id)
+        {
+            var entity = await _context.BorrowRecords.Include(b => b.Book)
+                                                     .FirstOrDefaultAsync(br => br.BookId == id);
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            if (entity.ReturnDate != null)
+            {
+                return BadRequest("Book is already returned.");
+            }
+
+            if (entity.Book == null)
+            {
+                return NotFound();
+            }
+
+            entity.ReturnDate = DateTime.Now;
+            entity.Status = BorrowRecordStatus.RETURNED;
+            entity.Book.AvailableCopies += 1;
+            await _context.SaveChangesAsync();
+
+            var Dto = _mapper.Map<BorrowRecordDto>(entity);
+            return Ok(Dto);
+        }
+
+        [HttpGet("Overdue")]
+        public async Task<ActionResult<IEnumerable<BorrowRecordDto>>> GetAllOverdueRecord()
+        {
+            var entities = await _context.BorrowRecords.Where(s => s.Status == BorrowRecordStatus.OVERDUE)
+                                                .ToListAsync();
+            var dto = _mapper.Map<IEnumerable<BorrowRecordDto>>(entities);
+
+            return Ok(dto);
         }
     }
 }
