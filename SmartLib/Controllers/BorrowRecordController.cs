@@ -197,5 +197,15 @@ namespace SmartLib.Controllers
 
             return Ok(dto);
         }
+
+        [HttpGet("Paid")]
+        public async Task<ActionResult<IEnumerable<BorrowRecordDto>>> GetAllPaidRecord()
+        {
+            var entities = await _context.BorrowRecords.Where(s => s.Status == BorrowRecordStatus.RETURNED)
+                                                .ToListAsync();
+
+            var dto = _mapper.Map<IEnumerable<BorrowRecordDto>>(entities);
+            return Ok(dto);
+        }
     }
 }
