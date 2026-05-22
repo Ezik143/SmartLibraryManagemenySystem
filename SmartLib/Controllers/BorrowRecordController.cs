@@ -40,6 +40,7 @@ namespace SmartLib.Controllers
             {
                 if (currentDate > record.DueDate)
                 {
+                    record.Status = BorrowRecordStatus.OVERDUE;
                     int overdueDays = (currentDate - record.DueDate).Days;
                     int days = Math.Min(overdueDays, maxDays);
                     record.FineAmount = finerate * days;
@@ -70,7 +71,7 @@ namespace SmartLib.Controllers
 
             if (borrowRecord.DueDate < currentDate)
             {
-
+                borrowRecord.Status = BorrowRecordStatus.OVERDUE;
                 int overdueDays = (currentDate - borrowRecord.DueDate).Days;
                 int finerate = 3;
                 int max = 30;
@@ -158,7 +159,7 @@ namespace SmartLib.Controllers
             return NoContent();
         }
 
-        [HttpPost("return/{returnBook}")]
+        [HttpPost("return/{id}")]
         public async Task<ActionResult<BorrowRecordDto>> ReturnBook(int id)
         {
             var entity = await _context.BorrowRecords.Include(b => b.Book)

@@ -91,8 +91,8 @@ namespace SmartLib.Controllers
             _mapper.Map(request, entity);
             await _context.SaveChangesAsync();
 
-            var dto = _mapper.Map<StudentDto>(request);
-            return Ok();
+            var dto = _mapper.Map<StudentDto>(entity);
+            return Ok(dto);
         }
 
         // DELETE api/<StudentController>/5
