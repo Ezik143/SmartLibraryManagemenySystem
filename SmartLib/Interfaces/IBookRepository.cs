@@ -5,11 +5,11 @@ namespace SmartLib.Interfaces
 {
     public interface IBookRepository
     {
-        Task<ActionResult<IEnumerable<BookDto>>> GetAllBooks();
-        Task<ActionResult<BookDto>> GetBookById(int id);
-        Task<ActionResult<BookDto>> CreateBook(BookDto request);
-        Task<ActionResult<BookDto>> UpdateBook(int id, BookDto request);
-        Task<ActionResult> DeleteBook(int id);
-        Task<ActionResult<IEnumerable<BookDto>>> GetBooksByName(string name);
+        Task<IEnumerable<BookDto>> GetAllBooksAsync();
+        Task<BookDto> GetBookByIdAsync(int id);
+        Task<BookDto> CreateBookAsync(BookDto request);
+        Task<BookDto> UpdateBookAsync(int id, BookDto request);
+        Task DeleteBookAsync(int id);
+        Task<BookDto> GetBooksByNameAsync(string name);
     }
 }

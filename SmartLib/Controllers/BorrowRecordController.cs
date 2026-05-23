@@ -31,29 +31,6 @@ namespace SmartLib.Controllers
         public async Task<ActionResult<IEnumerable<BorrowRecordDto>>> GetAllBorrowRecordController()
         {
             var borrowRecord = await _context.BorrowRecords.ToListAsync();
-
-            int finerate = 3;
-            int maxDays = 30;
-            var currentDate = DateTime.Now;
-
-            foreach (var record in borrowRecord)
-            {
-                if (currentDate > record.DueDate)
-                {
-                    record.Status = BorrowRecordStatus.OVERDUE;
-                    int overdueDays = (currentDate - record.DueDate).Days;
-                    int days = Math.Min(overdueDays, maxDays);
-                    record.FineAmount = finerate * days;
-                }
-                else
-                {
-                    record.FineAmount = 0;
-                }
-            }
-
-            // Save the updated fine amounts
-            await _context.SaveChangesAsync();
-
             var response = _mapper.Map<IEnumerable<BorrowRecordDto>>(borrowRecord);
             return Ok(response);
         }
@@ -67,17 +44,28 @@ namespace SmartLib.Controllers
             {
                 return NotFound();
             }
-            var currentDate = DateTime.Now;
+            var response = _mapper.Map<BorrowRecordDto>(borrowRecord);
+            return Ok(response);
+        }
 
-            if (borrowRecord.DueDate < currentDate)
+        [HttpGet("fines/{id}")]
+        public async Task<ActionResult<BorrowRecordDto>> GetBorrowRecordWithFine(int id)
+        {
+            var borrowRecord = await _context.BorrowRecords.FindAsync(id);
+            if (borrowRecord == null)
+            {
+                return NotFound();
+            }
+
+            var currentDate = DateTime.Now;
+            if (borrowRecord.DueDate < currentDate && borrowRecord.ReturnDate == null)
             {
                 borrowRecord.Status = BorrowRecordStatus.OVERDUE;
                 int overdueDays = (currentDate - borrowRecord.DueDate).Days;
                 int finerate = 3;
                 int max = 30;
                 int days = Math.Min(overdueDays, max);
-                decimal fineAmount = finerate * days;
-                borrowRecord.FineAmount = fineAmount;
+                borrowRecord.FineAmount = finerate * days;
             }
             else
             {
@@ -87,6 +75,7 @@ namespace SmartLib.Controllers
             var response = _mapper.Map<BorrowRecordDto>(borrowRecord);
             return Ok(response);
         }
+
 
         // POST api/<BorrowRecordDto>
         [HttpPost]

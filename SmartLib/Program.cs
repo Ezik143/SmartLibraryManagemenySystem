@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using SmartLib.Data;
-using SmartLib.Models.Dto.Profiles;
+using SmartLib.Interfaces;
+using SmartLib.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+builder.Services.AddScoped<IBookRepository, BookRepository>();
 
 
 builder.Services.AddControllers();
@@ -34,6 +37,8 @@ if (app.Environment.IsDevelopment())
         options.WithTitle("SmartLib API");
     });
 }
+
+
 
 app.UseHttpsRedirection();
 
