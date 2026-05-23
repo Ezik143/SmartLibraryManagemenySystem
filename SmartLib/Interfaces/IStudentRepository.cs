@@ -5,10 +5,11 @@ namespace SmartLib.Interfaces
 {
     public interface IStudentRepository
     {
-        Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudent();
-        Task<ActionResult<StudentDto>> GetStudentById(int id);
-        Task<ActionResult<StudentDto>> CreateStudent(StudentDto request);
-        Task<ActionResult<StudentDto>> UpdateStudent(int id, StudentDto request);
-        Task<ActionResult> DeleteStudent(int id);
+        Task<IEnumerable<StudentDto>> GetAllStudentsAsync();
+        Task<StudentDto> GetStudentByIdAsync(int id);
+        Task<StudentDto> GetStudentByNameAsync(string name);
+        Task<StudentDto> CreateStudentAsync(StudentDto request);
+        Task<StudentDto> UpdateStudentAsync(int id, StudentDto request);
+        Task DeleteStudentAsync(int id);
     }
 }
