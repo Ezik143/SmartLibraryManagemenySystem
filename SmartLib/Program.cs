@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using SmartLib.Data;
 using SmartLib.Interfaces;
+using SmartLib.Models.Entities;
 using SmartLib.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,7 +14,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
 
 builder.Services.AddScoped<IBookRepository, BookRepository>();
-
+builder.Services.AddScoped<IFineRepository, FineRepository>();
+builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 
 builder.Services.AddControllers();
 

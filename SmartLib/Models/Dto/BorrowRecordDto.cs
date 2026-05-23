@@ -11,7 +11,6 @@ namespace SmartLib.Models.Dto
         public DateTime DueDate { get; set; }
         public DateTime? ReturnDate { get; set; }
         public BorrowRecordStatus Status { get; set; } = BorrowRecordStatus.BORROWED;
-        public decimal FineAmount { get; set; }
         public DateTime CreatedAt { get; set; }
 
     }

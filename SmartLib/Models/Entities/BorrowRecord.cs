@@ -11,6 +11,6 @@ public class BorrowRecord
     public DateTime DueDate { get; set; }
     public DateTime? ReturnDate { get; set; }
     public BorrowRecordStatus Status { get; set; } = BorrowRecordStatus.BORROWED;
-    public decimal FineAmount { get; set; }
     public DateTime CreatedAt { get; set; }
+    public ICollection<Fine> Fines { get; set; } = new List<Fine>();
 }

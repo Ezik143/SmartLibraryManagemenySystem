@@ -6,7 +6,7 @@ namespace SmartLib.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) 
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
 
         }
@@ -15,6 +15,7 @@ namespace SmartLib.Data
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<Student> Students { get; set; }
         public DbSet<Teacher> Teachers { get; set; }
-        
+        public DbSet<Fine> Fines { get; set; }
+
     }
 }

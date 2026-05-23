@@ -76,7 +76,7 @@ namespace SmartLib.Repository
 
         public async Task<StudentDto> GetStudentByNameAsync(string name)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("GetStudentByNameAsync method is not implemented.");
         }
 
         public async Task<StudentDto> UpdateStudentAsync(int id, StudentDto request)

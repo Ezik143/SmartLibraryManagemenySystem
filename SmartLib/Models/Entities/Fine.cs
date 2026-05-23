@@ -3,7 +3,7 @@ namespace SmartLib.Models.Entities;
 public class Fine
 {
     public int Id { get; set; }
-    public int UserId { get; set; }
+    public string UserId { get; set; } = string.Empty;
     public ApplicationUser? User { get; set; }
     public int RecordId { get; set; }
     public BorrowRecord? Record { get; set; }

@@ -2,9 +2,9 @@
 
 namespace SmartLib.Models.Dto
 {
-    public class FineDtos
+    public class FineDto
     {
-        public int UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         public int RecordId { get; set; }
         public decimal Amount { get; set; }
         public string Status { get; set; } = "PENDING";
