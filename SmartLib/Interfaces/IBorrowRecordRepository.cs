@@ -6,14 +6,15 @@ namespace SmartLib.Interfaces
 {
     public interface IBorrowRecordRepository
     {
-        Task<ActionResult<IEnumerable<BorrowRecordDto>>> GetAllBorrowRecordController();
-        Task<ActionResult<BorrowRecordDto>> GetBorrowRecordById(int id);
-        Task<ActionResult<BorrowRecordDto>> CreateBorrowRecord(BorrowRecordDto request);
-        Task<ActionResult<BorrowRecordDto>> UpdateBorrowRecord(int id, BorrowRecordDto request);
-        Task<ActionResult> DeleteBorrowRecord(int id);
-        Task<ActionResult<BorrowRecordDto>> ReturnBook(int Id);
-        Task<ActionResult<IEnumerable<BorrowRecordDto>>> GetAllOverdueRecord();
-        Task<ActionResult<IEnumerable<BorrowRecordDto>>> GetAllPaidRecord();
+        Task<IEnumerable<BorrowRecordDto>> GetAllBorrowRecordAsync();
+        Task<BorrowRecordDto> GetBorrowRecordByIdAsync(int id);
+        Task<BorrowRecordDto> GetBorrowRecordWithFineAsync(int id);
+        Task<BorrowRecordDto> CreateBorrowRecordAsync(BorrowRecordDto request);
+        Task<BorrowRecordDto> UpdateBorrowRecordAsync(int id, BorrowRecordDto request);
+        Task DeleteBorrowRecordAsync(int id);
+        Task<BorrowRecordDto> ReturnBookAsync(int Id);
+        Task<IEnumerable<BorrowRecordDto>> GetAllOverdueRecordAsync();
+        Task<IEnumerable<BorrowRecordDto>> GetAllPaidRecordAsync();
     }
 
 }
