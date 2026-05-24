@@ -4,6 +4,7 @@ using SmartLib.Data;
 using SmartLib.Interfaces;
 using SmartLib.Models.Entities;
 using SmartLib.Repository;
+using SmartLib.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,6 @@ builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 
 builder.Services.AddControllers();
 
-
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddMaps(typeof(Program).Assembly);
@@ -27,6 +27,9 @@ builder.Services.AddAutoMapper(cfg =>
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Register the overdue check background service
+builder.Services.AddHostedService<OverdueService>();
 
 var app = builder.Build();
 
@@ -39,8 +42,6 @@ if (app.Environment.IsDevelopment())
         options.WithTitle("SmartLib API");
     });
 }
-
-
 
 app.UseHttpsRedirection();
 

@@ -78,6 +78,8 @@ namespace SmartLib.Repository
             // Decrement available copies for the book
             book.AvailableCopies -= 1;
 
+
+
             var entity = _mapper.Map<BorrowRecord>(request);
             await _context.AddAsync(entity);
             await _context.SaveChangesAsync();
