@@ -62,6 +62,26 @@ namespace SmartLib.Repository
                 throw new ArgumentNullException(nameof(request), "BorrowRecord data cannot be null.");
             }
 
+            var User = await _context.Users.FindAsync(request.UserId);
+
+            if (User == null)
+            {
+                throw new KeyNotFoundException($"User with ID {request.UserId} not found.");
+            }
+            var borrowLimit = User.Role switch
+            {
+                UserRole.Teacher => 5,
+                UserRole.Student => 3,
+                _ => 3
+            };
+
+            int activeBorrows = await _context.BorrowRecords.CountAsync(br => br.UserId == request.UserId && br.Status == BorrowRecordStatus.BORROWED);
+
+            if (activeBorrows >= borrowLimit)
+            {
+                throw new InvalidOperationException($"Borrowing limit reached. You can only borrow {borrowLimit} books at a time.");
+            }
+
             // Verify book exists
             var book = await _context.Books.FindAsync(request.BookId);
             if (book == null)

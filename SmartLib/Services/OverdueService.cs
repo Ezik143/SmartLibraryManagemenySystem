@@ -29,8 +29,8 @@ namespace SmartLib.Services
                 {
                     _logger.LogError(ex, "Error occurred while checking overdue books.");
                 }
+                await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
             }
-            await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
         }
 
         private async Task CheckAndProcessOverdueBooksAsync()
