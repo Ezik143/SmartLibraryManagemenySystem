@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using SmartLib.Data;
 using SmartLib.Interfaces;
-using SmartLib.Models.Entities;
+using SmartLib.Models.Settings;
 using SmartLib.Repository;
 using SmartLib.Services;
 
@@ -13,6 +13,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+builder.Services.AddOptions<FineSettings>()
+    .Bind(builder.Configuration.GetSection("FineSettings"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IFineRepository, FineRepository>();

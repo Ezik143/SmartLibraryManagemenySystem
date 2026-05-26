@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
+using Microsoft.Extensions.Options;
 using SmartLib.Data;
 using SmartLib.Models.Entities;
+using SmartLib.Models.Settings;
 
 namespace SmartLib.Services
 {
@@ -9,10 +10,16 @@ namespace SmartLib.Services
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<OverdueService> _logger;
-        public OverdueService(IServiceScopeFactory serviceScopeFactory, ILogger<OverdueService> logger)
+        private readonly FineSettings _fineSettings;
+
+        public OverdueService(
+            IServiceScopeFactory serviceScopeFactory,
+            ILogger<OverdueService> logger,
+            IOptions<FineSettings> fineOptions)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
+            _fineSettings = fineOptions.Value;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -54,11 +61,9 @@ namespace SmartLib.Services
             {
                 record.Status = BorrowRecordStatus.OVERDUE;
 
-                var OverdueDays = (DateTime.UtcNow - record.DueDate).Days;
-                int rate = 3;
-                int max = 30;
-                int days = Math.Min(OverdueDays, max);
-                int total = days * rate;
+                var overdueDays = (DateTime.UtcNow - record.DueDate).Days;
+                var billableDays = Math.Min(overdueDays, _fineSettings.MaxDays);
+                var total = billableDays * _fineSettings.RatePerDay;
 
                 var fineEntity = await context.Fines.FirstOrDefaultAsync(f => f.RecordId == record.BorrowRecordId);
 

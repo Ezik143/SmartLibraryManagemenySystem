@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using SmartLib.Data;
 using SmartLib.Interfaces;
 using SmartLib.Models.Dto;
 using SmartLib.Models.Entities;
+using SmartLib.Models.Settings;
 
 namespace SmartLib.Repository
 {
@@ -12,11 +14,16 @@ namespace SmartLib.Repository
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly FineSettings _fineSettings;
 
-        public BorrowRecordRespository(ApplicationDbContext context, IMapper mapper)
+        public BorrowRecordRespository(
+            ApplicationDbContext context,
+            IMapper mapper,
+            IOptions<FineSettings> fineOptions)
         {
             _context = context;
             _mapper = mapper;
+            _fineSettings = fineOptions.Value;
         }
 
         public async Task<IEnumerable<BorrowRecordDto>> GetAllBorrowRecordAsync()
@@ -174,10 +181,8 @@ namespace SmartLib.Repository
             {
                 // Calculate overdue days
                 int overdueDays = (entity.ReturnDate.Value - entity.DueDate).Days;
-                int finerate = 3; // Daily fine rate
-                int max = 30;    // Maximum days for fine calculation
-                int days = Math.Min(overdueDays, max);
-                decimal amount = finerate * days;
+                int days = Math.Min(overdueDays, _fineSettings.MaxDays);
+                decimal amount = days * _fineSettings.RatePerDay;
 
                 // Create new fine record
                 var fine = new Fine
