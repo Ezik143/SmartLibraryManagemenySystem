@@ -1,13 +1,14 @@
 using FluentValidation;
-using SmartLib.Models.Dto;
+using SmartLib.Models.Dto.Create;
 
 namespace SmartLib.Validators
 {
-    public class StudentDtoValidator : AbstractValidator<StudentDto>
+    public class CreateStudentDtoValidator : AbstractValidator<CreateStudentDto>
     {
-        public StudentDtoValidator()
+        public CreateStudentDtoValidator()
         {
-            RuleFor(x => x.UserId).NotEmpty();
+            RuleFor(x => x.Name).NotEmpty();
+            RuleFor(x => x.Password).NotEmpty();
             RuleFor(x => x.Section).NotEmpty();
             RuleFor(x => x.YearLevel).NotEmpty();
         }

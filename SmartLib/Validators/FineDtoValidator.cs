@@ -1,11 +1,11 @@
 using FluentValidation;
-using SmartLib.Models.Dto;
+using SmartLib.Models.Dto.Create;
 
 namespace SmartLib.Validators
 {
-    public class FineDtoValidator : AbstractValidator<FineDto>
+    public class CreateFineDtoValidator : AbstractValidator<CreateFineDto>
     {
-        public FineDtoValidator()
+        public CreateFineDtoValidator()
         {
             RuleFor(x => x.UserId).NotEmpty();
             RuleFor(x => x.RecordId).GreaterThan(0);

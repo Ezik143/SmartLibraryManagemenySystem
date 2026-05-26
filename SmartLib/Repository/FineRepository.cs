@@ -2,7 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using SmartLib.Data;
 using SmartLib.Interfaces;
-using SmartLib.Models.Dto;
+using SmartLib.Models.Dto.Create;
+using SmartLib.Models.Dto.Response;
 using SmartLib.Models.Entities;
 
 namespace SmartLib.Repository
@@ -19,7 +20,7 @@ namespace SmartLib.Repository
             _mapper = mapper;
         }
 
-        public async Task<FineDto> CreateFineAsync(FineDto request)
+        public async Task<FineResponseDto> CreateFineAsync(CreateFineDto request)
         {
             // Validate input to prevent null reference exceptions
             if (request == null)
@@ -32,7 +33,7 @@ namespace SmartLib.Repository
             await _context.SaveChangesAsync();
 
             // Map back to DTO for response
-            var dto = _mapper.Map(entity, request);
+            var dto = _mapper.Map<FineResponseDto>(entity);
             return dto;
         }
 
@@ -48,16 +49,16 @@ namespace SmartLib.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<FineDto>> GetAllFinesAsync()
+        public async Task<IEnumerable<FineResponseDto>> GetAllFinesAsync()
         {
             // Retrieve all fines from database
             var entities = await _context.Fines.ToListAsync();
 
-            var dto = _mapper.Map<IEnumerable<FineDto>>(entities);
+            var dto = _mapper.Map<IEnumerable<FineResponseDto>>(entities);
             return dto;
         }
 
-        public async Task<FineDto> GetFineByIdAsync(int id)
+        public async Task<FineResponseDto> GetFineByIdAsync(int id)
         {
             // Find fine by ID
             var entity = await _context.Fines.FindAsync(id);
@@ -67,11 +68,11 @@ namespace SmartLib.Repository
                 throw new KeyNotFoundException($"Fine with ID {id} not found.");
             }
 
-            var dto = _mapper.Map<FineDto>(entity);
+            var dto = _mapper.Map<FineResponseDto>(entity);
             return dto;
         }
 
-        public async Task<FineDto> UpdateFineAsync(int id, FineDto request)
+        public async Task<FineResponseDto> UpdateFineAsync(int id, CreateFineDto request)
         {
             // Find existing fine to update
             var entity = await _context.Fines.FindAsync(id);
@@ -84,7 +85,7 @@ namespace SmartLib.Repository
             _mapper.Map(request, entity);
             await _context.SaveChangesAsync();
 
-            var dto = _mapper.Map<FineDto>(entity);
+            var dto = _mapper.Map<FineResponseDto>(entity);
             return dto;
         }
 

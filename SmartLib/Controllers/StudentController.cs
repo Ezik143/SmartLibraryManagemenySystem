@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
-using SmartLib.Models.Dto;
+using SmartLib.Models.Dto.Create;
+using SmartLib.Models.Dto.Response;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -17,7 +18,7 @@ namespace SmartLib.Controllers
         }
         // GET: api/<StudentController>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<StudentDto>>> GetAllStudent()
+        public async Task<ActionResult<IEnumerable<StudentResponseDto>>> GetAllStudent()
         {
             var entityDto = await _student.GetAllStudentsAsync();
             return Ok(entityDto);
@@ -25,7 +26,7 @@ namespace SmartLib.Controllers
 
         // GET api/<StudentController>/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<StudentDto>> GetStudentById(int id)
+        public async Task<ActionResult<StudentResponseDto>> GetStudentById(int id)
         {
             var entityDto = await _student.GetStudentByIdAsync(id);
             return Ok(entityDto);
@@ -33,7 +34,7 @@ namespace SmartLib.Controllers
 
         // POST api/<StudentController>
         [HttpPost]
-        public async Task<ActionResult<StudentDto>> CreateStudent(StudentDto request)
+        public async Task<ActionResult<StudentResponseDto>> CreateStudent(CreateStudentDto request)
         {
             var entityDto = await _student.CreateStudentAsync(request);
             return NoContent();
@@ -41,7 +42,7 @@ namespace SmartLib.Controllers
 
         // PUT api/<StudentController>/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<StudentDto>> UpdateStudent(int id, StudentDto request)
+        public async Task<ActionResult<StudentResponseDto>> UpdateStudent(int id, CreateStudentDto request)
         {
             var entityDto = await _student.UpdateStudentAsync(id, request);
             return NoContent();

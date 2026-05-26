@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SmartLib.Data;
 using SmartLib.Interfaces;
-using SmartLib.Models.Dto;
+using SmartLib.Models.Dto.Create;
+using SmartLib.Models.Dto.Response;
 using SmartLib.Models.Entities;
+using System.Linq;
 
 namespace SmartLib.Repository
 {
@@ -11,22 +14,25 @@ namespace SmartLib.Repository
     {
         private readonly IMapper _mapper;
         private readonly ApplicationDbContext _context;
-        public StudentRepository(ApplicationDbContext context, IMapper mapper)
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public StudentRepository(ApplicationDbContext context, IMapper mapper, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _mapper = mapper;
+            _userManager = userManager;
         }
 
 
-        public async Task<IEnumerable<StudentDto>> GetAllStudentsAsync()
+        public async Task<IEnumerable<StudentResponseDto>> GetAllStudentsAsync()
         {
             var entity = await _context.Students.ToListAsync();
-            var dto = _mapper.Map<IEnumerable<StudentDto>>(entity);
+            var dto = _mapper.Map<IEnumerable<StudentResponseDto>>(entity);
 
             return dto;
         }
 
-        public async Task<StudentDto> GetStudentByIdAsync(int id)
+        public async Task<StudentResponseDto> GetStudentByIdAsync(int id)
         {
             var entity = await _context.Students.FindAsync(id);
             if (entity == null)
@@ -34,11 +40,11 @@ namespace SmartLib.Repository
                 throw new KeyNotFoundException($"Student with ID {id} not found.");
             }
 
-            var dto = _mapper.Map<StudentDto>(entity);
+            var dto = _mapper.Map<StudentResponseDto>(entity);
             return dto;
         }
 
-        public async Task<StudentDto> CreateStudentAsync(StudentDto request)
+        public async Task<StudentResponseDto> CreateStudentAsync(CreateStudentDto request)
         {
 
             if (request == null)
@@ -46,18 +52,48 @@ namespace SmartLib.Repository
                 throw new ArgumentNullException(nameof(request), "Student data cannot be null.");
             }
 
-            var result = await _context.Students.FirstOrDefaultAsync(u => u.UserId == request.UserId);
-            if (result != null)
+            if (string.IsNullOrWhiteSpace(request.Name))
             {
-                throw new InvalidOperationException("Student with this UserId already exists.");
+                throw new InvalidOperationException("Student name is required.");
             }
 
+            if (string.IsNullOrWhiteSpace(request.Password))
+            {
+                throw new InvalidOperationException("Password is required.");
+            }
+
+            var existingUser = await _userManager.FindByNameAsync(request.Name.Trim());
+            if (existingUser != null)
+            {
+                throw new InvalidOperationException("User with this name already exists.");
+            }
+
+            var user = new ApplicationUser
+            {
+                Name = request.Name.Trim(),
+                UserName = request.Name.Trim(),
+                Role = UserRole.Student,
+                IsAdmin = false,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            var createUserResult = await _userManager.CreateAsync(user, request.Password);
+            if (!createUserResult.Succeeded)
+            {
+                var errorMessage = string.Join("; ", createUserResult.Errors.Select(e => e.Description));
+                throw new InvalidOperationException($"Failed to create user: {errorMessage}");
+            }
 
             var entity = _mapper.Map<Student>(request);
+            entity.UserId = user.Id;
+            entity.CreatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = DateTime.UtcNow;
+
             await _context.AddAsync(entity);
             await _context.SaveChangesAsync();
 
-            var dto = _mapper.Map<StudentDto>(entity);
+            var dto = _mapper.Map<StudentResponseDto>(entity);
 
             return dto;
         }
@@ -74,7 +110,7 @@ namespace SmartLib.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<StudentDto>> GetStudentByNameAsync(string name)
+        public async Task<IEnumerable<StudentResponseDto>> GetStudentByNameAsync(string name)
         {
             if (name == null)
             {
@@ -86,11 +122,11 @@ namespace SmartLib.Repository
                                                         .Where(s => s.User != null && s.User.Role != UserRole.Student && s.User.Name == name)
                                                         .ToList();
 
-            var dto = _mapper.Map<IEnumerable<StudentDto>>(Userentity);
+            var dto = _mapper.Map<IEnumerable<StudentResponseDto>>(Userentity);
             return dto;
         }
 
-        public async Task<StudentDto> UpdateStudentAsync(int id, StudentDto request)
+        public async Task<StudentResponseDto> UpdateStudentAsync(int id, CreateStudentDto request)
         {
             if (request == null)
             {
@@ -104,9 +140,10 @@ namespace SmartLib.Repository
             }
 
             _mapper.Map(request, entity);
+            entity.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            var dto = _mapper.Map<StudentDto>(entity);
+            var dto = _mapper.Map<StudentResponseDto>(entity);
             return dto;
         }
     }

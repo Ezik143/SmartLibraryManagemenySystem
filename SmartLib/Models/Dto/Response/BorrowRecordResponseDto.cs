@@ -1,8 +1,8 @@
-﻿using SmartLib.Models.Entities;
+using SmartLib.Models.Entities;
 
-namespace SmartLib.Models.Dto
+namespace SmartLib.Models.Dto.Response
 {
-    public class BorrowRecordDto
+    public class BorrowRecordResponseDto
     {
         public int BorrowRecordId { get; set; }
         public string UserId { get; set; } = string.Empty;
@@ -12,6 +12,5 @@ namespace SmartLib.Models.Dto
         public DateTime? ReturnDate { get; set; }
         public BorrowRecordStatus Status { get; set; } = BorrowRecordStatus.BORROWED;
         public DateTime CreatedAt { get; set; }
-
     }
 }

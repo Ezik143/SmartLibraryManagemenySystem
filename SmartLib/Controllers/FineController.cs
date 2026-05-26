@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
-using SmartLib.Models.Dto;
+using SmartLib.Models.Dto.Create;
+using SmartLib.Models.Dto.Response;
 // FineController - Handles HTTP requests for fine management operations (CRUD)
 
 namespace SmartLib.Controllers
@@ -19,7 +20,7 @@ namespace SmartLib.Controllers
 
         // GET: api/<FineController>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<FineDto>>> GetAllFines()
+        public async Task<ActionResult<IEnumerable<FineResponseDto>>> GetAllFines()
         {
             var entitiesDto = await _fine.GetAllFinesAsync();
             return Ok(entitiesDto);
@@ -27,7 +28,7 @@ namespace SmartLib.Controllers
 
         // GET api/<FineController>/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<FineDto>> GetFineById(int id)
+        public async Task<ActionResult<FineResponseDto>> GetFineById(int id)
         {
             var entityDto = await _fine.GetFineByIdAsync(id);
             return Ok(entityDto);
@@ -35,7 +36,7 @@ namespace SmartLib.Controllers
 
         // POST api/<FineController>
         [HttpPost]
-        public async Task<ActionResult<FineDto>> CreateFine(FineDto request)
+        public async Task<ActionResult<FineResponseDto>> CreateFine(CreateFineDto request)
         {
             var entityDto = await _fine.CreateFineAsync(request);
             return NoContent();
@@ -43,7 +44,7 @@ namespace SmartLib.Controllers
 
         // PUT api/<FineController>/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<FineDto>> UpdateFine(int id, FineDto request)
+        public async Task<ActionResult<FineResponseDto>> UpdateFine(int id, CreateFineDto request)
         {
             var entityDto = await _fine.UpdateFineAsync(id, request);
             return NoContent();

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
-using SmartLib.Models.Dto;
+using SmartLib.Models.Dto.Create;
+using SmartLib.Models.Dto.Response;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -21,7 +22,7 @@ namespace SmartLib.Controllers
 
         // GET: api/<BookController>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BookDto>>> GetAllBooks()
+        public async Task<ActionResult<IEnumerable<BookResponseDto>>> GetAllBooks()
         {
             var entitiesDto = await _book.GetAllBooksAsync();
             return Ok(entitiesDto);
@@ -29,7 +30,7 @@ namespace SmartLib.Controllers
 
         // GET api/<BookController>/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<BookDto>> GetBookById(int id)
+        public async Task<ActionResult<BookResponseDto>> GetBookById(int id)
         {
             var entityDto = await _book.GetBookByIdAsync(id);
             return Ok(entityDto);
@@ -37,7 +38,7 @@ namespace SmartLib.Controllers
 
         // POST api/<BookController>
         [HttpPost]
-        public async Task<ActionResult<BookDto>> CreateBook(BookDto request)
+        public async Task<ActionResult<BookResponseDto>> CreateBook(CreateBookDto request)
         {
             var entityDto = await _book.CreateBookAsync(request);
             return NoContent();
@@ -45,7 +46,7 @@ namespace SmartLib.Controllers
 
         // PUT api/<BookController>/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<BookDto>> UpdateBook(int id, BookDto request)
+        public async Task<ActionResult<BookResponseDto>> UpdateBook(int id, CreateBookDto request)
         {
             var entityDto = await _book.UpdateBookAsync(id, request);
             return NoContent();
@@ -60,7 +61,7 @@ namespace SmartLib.Controllers
         }
 
         [HttpGet("name/{name}")]
-        public async Task<ActionResult<BookDto>> GetBookByName(string name)
+        public async Task<ActionResult<BookResponseDto>> GetBookByName(string name)
         {
             var entityDto = await _book.GetBooksByNameAsync(name);
             return Ok(entityDto);

@@ -1,12 +1,11 @@
 using FluentValidation;
-using System.Text.RegularExpressions;
-using SmartLib.Models.Dto;
+using SmartLib.Models.Dto.Create;
 
 namespace SmartLib.Validators
 {
-    public class BookDtoValidator : AbstractValidator<BookDto>
+    public class CreateBookDtoValidator : AbstractValidator<CreateBookDto>
     {
-        public BookDtoValidator()
+        public CreateBookDtoValidator()
         {
             RuleFor(x => x.Title)
                 .NotEmpty()

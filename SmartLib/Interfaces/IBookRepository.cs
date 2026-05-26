@@ -1,15 +1,15 @@
-using Microsoft.AspNetCore.Mvc;
-using SmartLib.Models.Dto;
+using SmartLib.Models.Dto.Create;
+using SmartLib.Models.Dto.Response;
 
 namespace SmartLib.Interfaces
 {
     public interface IBookRepository
     {
-        Task<IEnumerable<BookDto>> GetAllBooksAsync();
-        Task<BookDto> GetBookByIdAsync(int id);
-        Task<BookDto> CreateBookAsync(BookDto request);
-        Task<BookDto> UpdateBookAsync(int id, BookDto request);
+        Task<IEnumerable<BookResponseDto>> GetAllBooksAsync();
+        Task<BookResponseDto> GetBookByIdAsync(int id);
+        Task<BookResponseDto> CreateBookAsync(CreateBookDto request);
+        Task<BookResponseDto> UpdateBookAsync(int id, CreateBookDto request);
         Task DeleteBookAsync(int id);
-        Task<BookDto> GetBooksByNameAsync(string name);
+        Task<BookResponseDto> GetBooksByNameAsync(string name);
     }
 }

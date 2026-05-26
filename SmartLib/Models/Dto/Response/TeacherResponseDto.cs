@@ -1,12 +1,12 @@
-﻿using SmartLib.Models.Entities;
+using SmartLib.Models.Entities;
 
-namespace SmartLib.Models.Dto
+namespace SmartLib.Models.Dto.Response
 {
-    public class StudentDto
+    public class TeacherResponseDto
     {
         public string UserId { get; set; } = string.Empty;
-        public string Section { get; set; } = string.Empty;
-        public string YearLevel { get; set; } = string.Empty;
+        public int DepartmentId { get; set; }
+        public Department Department { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public bool IsActive { get; set; }

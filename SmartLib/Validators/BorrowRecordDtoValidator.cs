@@ -1,11 +1,11 @@
 using FluentValidation;
-using SmartLib.Models.Dto;
+using SmartLib.Models.Dto.Create;
 
 namespace SmartLib.Validators
 {
-    public class BorrowRecordDtoValidator : AbstractValidator<BorrowRecordDto>
+    public class CreateBorrowRecordDtoValidator : AbstractValidator<CreateBorrowRecordDto>
     {
-        public BorrowRecordDtoValidator()
+        public CreateBorrowRecordDtoValidator()
         {
             RuleFor(x => x.UserId).NotEmpty();
             RuleFor(x => x.BookId).GreaterThan(0);

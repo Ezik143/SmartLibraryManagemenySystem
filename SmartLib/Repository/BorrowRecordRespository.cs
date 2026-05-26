@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SmartLib.Data;
 using SmartLib.Interfaces;
-using SmartLib.Models.Dto;
+using SmartLib.Models.Dto.Create;
+using SmartLib.Models.Dto.Response;
 using SmartLib.Models.Entities;
 using SmartLib.Models.Settings;
 
@@ -26,14 +27,14 @@ namespace SmartLib.Repository
             _fineSettings = fineOptions.Value;
         }
 
-        public async Task<IEnumerable<BorrowRecordDto>> GetAllBorrowRecordAsync()
+        public async Task<IEnumerable<BorrowRecordResponseDto>> GetAllBorrowRecordAsync()
         {
             var entity = await _context.BorrowRecords.ToListAsync();
-            var dto = _mapper.Map<IEnumerable<BorrowRecordDto>>(entity);
+            var dto = _mapper.Map<IEnumerable<BorrowRecordResponseDto>>(entity);
             return dto;
         }
 
-        public async Task<BorrowRecordDto> GetBorrowRecordByIdAsync(int id)
+        public async Task<BorrowRecordResponseDto> GetBorrowRecordByIdAsync(int id)
         {
             // Find borrow record by ID
             var entity = await _context.BorrowRecords.FindAsync(id);
@@ -41,11 +42,11 @@ namespace SmartLib.Repository
             {
                 throw new KeyNotFoundException($"BorrowRecord with ID {id} not found.");
             }
-            var dto = _mapper.Map<BorrowRecordDto>(entity);
+            var dto = _mapper.Map<BorrowRecordResponseDto>(entity);
             return dto;
         }
 
-        public async Task<BorrowRecordDto> GetBorrowRecordWithFineAsync(int id)
+        public async Task<BorrowRecordResponseDto> GetBorrowRecordWithFineAsync(int id)
         {
             // Include related fines when fetching borrow record
             var borrowRecord = await _context.BorrowRecords
@@ -57,11 +58,11 @@ namespace SmartLib.Repository
                 throw new KeyNotFoundException($"BorrowRecord with ID {id} not found.");
             }
 
-            var response = _mapper.Map<BorrowRecordDto>(borrowRecord);
+            var response = _mapper.Map<BorrowRecordResponseDto>(borrowRecord);
             return response;
         }
 
-        public async Task<BorrowRecordDto> CreateBorrowRecordAsync(BorrowRecordDto request)
+        public async Task<BorrowRecordResponseDto> CreateBorrowRecordAsync(CreateBorrowRecordDto request)
         {
             // Validate incoming request
             if (request == null)
@@ -111,11 +112,11 @@ namespace SmartLib.Repository
             await _context.AddAsync(entity);
             await _context.SaveChangesAsync();
 
-            var dto = _mapper.Map<BorrowRecordDto>(entity);
+            var dto = _mapper.Map<BorrowRecordResponseDto>(entity);
             return dto;
         }
 
-        public async Task<BorrowRecordDto> UpdateBorrowRecordAsync(int id, BorrowRecordDto request)
+        public async Task<BorrowRecordResponseDto> UpdateBorrowRecordAsync(int id, CreateBorrowRecordDto request)
         {
             // Validate incoming request
             if (request == null)
@@ -132,7 +133,7 @@ namespace SmartLib.Repository
 
             _mapper.Map(request, entity);
             await _context.SaveChangesAsync();
-            var dto = _mapper.Map<BorrowRecordDto>(entity);
+            var dto = _mapper.Map<BorrowRecordResponseDto>(entity);
             return dto;
         }
 
@@ -149,7 +150,7 @@ namespace SmartLib.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task<BorrowRecordDto> ReturnBookAsync(int id)
+        public async Task<BorrowRecordResponseDto> ReturnBookAsync(int id)
         {
             // Load borrow record with related book data
             var entity = await _context.BorrowRecords.Include(b => b.Book)
@@ -199,25 +200,25 @@ namespace SmartLib.Repository
 
             await _context.SaveChangesAsync();
 
-            var dto = _mapper.Map<BorrowRecordDto>(entity);
+            var dto = _mapper.Map<BorrowRecordResponseDto>(entity);
             return dto;
         }
 
-        public async Task<IEnumerable<BorrowRecordDto>> GetAllOverdueRecordAsync()
+        public async Task<IEnumerable<BorrowRecordResponseDto>> GetAllOverdueRecordAsync()
         {
             // Filter records by OVERDUE status
             var entities = await _context.BorrowRecords.Where(s => s.Status == BorrowRecordStatus.OVERDUE)
                                                 .ToListAsync();
-            var dto = _mapper.Map<IEnumerable<BorrowRecordDto>>(entities);
+            var dto = _mapper.Map<IEnumerable<BorrowRecordResponseDto>>(entities);
             return dto;
         }
 
-        public async Task<IEnumerable<BorrowRecordDto>> GetAllPaidRecordAsync()
+        public async Task<IEnumerable<BorrowRecordResponseDto>> GetAllPaidRecordAsync()
         {
             // Filter records by RETURNED status (books returned with any fines paid)
             var entities = await _context.BorrowRecords.Where(s => s.Status == BorrowRecordStatus.RETURNED)
                                                 .ToListAsync();
-            var dto = _mapper.Map<IEnumerable<BorrowRecordDto>>(entities);
+            var dto = _mapper.Map<IEnumerable<BorrowRecordResponseDto>>(entities);
             return dto;
         }
     }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
-using SmartLib.Models.Dto;
+using SmartLib.Models.Dto.Create;
+using SmartLib.Models.Dto.Response;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -19,7 +20,7 @@ namespace SmartLib.Controllers
 
         // GET: api/<BorrowRecordDto>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BorrowRecordDto>>> GetAllBorrowRecordController()
+        public async Task<ActionResult<IEnumerable<BorrowRecordResponseDto>>> GetAllBorrowRecordController()
         {
             var borrowRecord = await _borrowRecord.GetAllBorrowRecordAsync();
             return Ok(borrowRecord);
@@ -27,14 +28,14 @@ namespace SmartLib.Controllers
 
         // GET api/<BorrowRecordDto>/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<BorrowRecordDto>> GetBorrowRecordById(int id)
+        public async Task<ActionResult<BorrowRecordResponseDto>> GetBorrowRecordById(int id)
         {
             var borrowRecord = await _borrowRecord.GetBorrowRecordByIdAsync(id);
             return Ok(borrowRecord);
         }
 
         [HttpGet("fines/{id}")]
-        public async Task<ActionResult<BorrowRecordDto>> GetBorrowRecordWithFine(int id)
+        public async Task<ActionResult<BorrowRecordResponseDto>> GetBorrowRecordWithFine(int id)
         {
             var borrowRecord = await _borrowRecord.GetBorrowRecordWithFineAsync(id);
             return Ok(borrowRecord);
@@ -43,7 +44,7 @@ namespace SmartLib.Controllers
 
         // POST api/<BorrowRecordDto>
         [HttpPost]
-        public async Task<ActionResult<BorrowRecordDto>> CreateBorrowRecord(BorrowRecordDto request)
+        public async Task<ActionResult<BorrowRecordResponseDto>> CreateBorrowRecord(CreateBorrowRecordDto request)
         {
             var borrowRecord = await _borrowRecord.CreateBorrowRecordAsync(request);
             return NoContent();
@@ -51,7 +52,7 @@ namespace SmartLib.Controllers
 
         // PUT api/<BorrowRecordDto>/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<BorrowRecordDto>> UpdateBorrowRecord(int id, BorrowRecordDto request)
+        public async Task<ActionResult<BorrowRecordResponseDto>> UpdateBorrowRecord(int id, CreateBorrowRecordDto request)
         {
             var borrowRecord = await _borrowRecord.UpdateBorrowRecordAsync(id, request);
             return NoContent();
@@ -66,21 +67,21 @@ namespace SmartLib.Controllers
         }
 
         [HttpPost("return/{id}")]
-        public async Task<ActionResult<BorrowRecordDto>> ReturnBook(int id)
+        public async Task<ActionResult<BorrowRecordResponseDto>> ReturnBook(int id)
         {
             var borrowRecord = await _borrowRecord.ReturnBookAsync(id);
             return Ok(borrowRecord);
         }
 
         [HttpGet("Overdue")]
-        public async Task<ActionResult<IEnumerable<BorrowRecordDto>>> GetAllOverdueRecord()
+        public async Task<ActionResult<IEnumerable<BorrowRecordResponseDto>>> GetAllOverdueRecord()
         {
             var borrowRecord = await _borrowRecord.GetAllOverdueRecordAsync();
             return Ok(borrowRecord);
         }
 
         [HttpGet("Paid")]
-        public async Task<ActionResult<IEnumerable<BorrowRecordDto>>> GetAllPaidRecord()
+        public async Task<ActionResult<IEnumerable<BorrowRecordResponseDto>>> GetAllPaidRecord()
         {
             var borrowRecord = await _borrowRecord.GetAllPaidRecordAsync();
             return Ok(borrowRecord);

@@ -1,20 +1,19 @@
-using Microsoft.AspNetCore.Mvc;
-using SmartLib.Models.Dto;
-using SmartLib.Models.Entities;
+using SmartLib.Models.Dto.Create;
+using SmartLib.Models.Dto.Response;
 
 namespace SmartLib.Interfaces
 {
     public interface IBorrowRecordRepository
     {
-        Task<IEnumerable<BorrowRecordDto>> GetAllBorrowRecordAsync();
-        Task<BorrowRecordDto> GetBorrowRecordByIdAsync(int id);
-        Task<BorrowRecordDto> GetBorrowRecordWithFineAsync(int id);
-        Task<BorrowRecordDto> CreateBorrowRecordAsync(BorrowRecordDto request);
-        Task<BorrowRecordDto> UpdateBorrowRecordAsync(int id, BorrowRecordDto request);
+        Task<IEnumerable<BorrowRecordResponseDto>> GetAllBorrowRecordAsync();
+        Task<BorrowRecordResponseDto> GetBorrowRecordByIdAsync(int id);
+        Task<BorrowRecordResponseDto> GetBorrowRecordWithFineAsync(int id);
+        Task<BorrowRecordResponseDto> CreateBorrowRecordAsync(CreateBorrowRecordDto request);
+        Task<BorrowRecordResponseDto> UpdateBorrowRecordAsync(int id, CreateBorrowRecordDto request);
         Task DeleteBorrowRecordAsync(int id);
-        Task<BorrowRecordDto> ReturnBookAsync(int Id);
-        Task<IEnumerable<BorrowRecordDto>> GetAllOverdueRecordAsync();
-        Task<IEnumerable<BorrowRecordDto>> GetAllPaidRecordAsync();
+        Task<BorrowRecordResponseDto> ReturnBookAsync(int Id);
+        Task<IEnumerable<BorrowRecordResponseDto>> GetAllOverdueRecordAsync();
+        Task<IEnumerable<BorrowRecordResponseDto>> GetAllPaidRecordAsync();
     }
 
 }

@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using SmartLib.Models.Dto.Create;
+using SmartLib.Models.Dto.Response;
 using SmartLib.Models.Entities;
 
 namespace SmartLib.Models.Dto.Profiles
@@ -7,7 +9,8 @@ namespace SmartLib.Models.Dto.Profiles
     {
         public BookProfile()
         {
-            CreateMap<Book, BookDto>().ReverseMap();
+            CreateMap<CreateBookDto, Book>();
+            CreateMap<Book, BookResponseDto>();
         }
     }
 }

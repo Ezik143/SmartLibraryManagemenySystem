@@ -2,7 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using SmartLib.Data;
 using SmartLib.Interfaces;
-using SmartLib.Models.Dto;
+using SmartLib.Models.Dto.Create;
+using SmartLib.Models.Dto.Response;
 using SmartLib.Models.Entities;
 
 namespace SmartLib.Repository
@@ -19,15 +20,15 @@ namespace SmartLib.Repository
         }
 
 
-        public async Task<IEnumerable<BookDto>> GetAllBooksAsync()
+        public async Task<IEnumerable<BookResponseDto>> GetAllBooksAsync()
         {
             var entities = await _context.Books.ToListAsync();
-            var dtos = _mapper.Map<IEnumerable<BookDto>>(entities);
+            var dtos = _mapper.Map<IEnumerable<BookResponseDto>>(entities);
             return dtos;
         }
 
 
-        public async Task<BookDto> GetBookByIdAsync(int id)
+        public async Task<BookResponseDto> GetBookByIdAsync(int id)
         {
             var entity = await _context.Books.FindAsync(id);
             if (entity == null)
@@ -35,11 +36,11 @@ namespace SmartLib.Repository
                 throw new InvalidOperationException($"Book with ID {id} not found.");
             }
 
-            var dto = _mapper.Map<BookDto>(entity);
+            var dto = _mapper.Map<BookResponseDto>(entity);
             return dto;
         }
 
-        public async Task<BookDto> CreateBookAsync(BookDto request)
+        public async Task<BookResponseDto> CreateBookAsync(CreateBookDto request)
         {
             if (request == null)
             {
@@ -58,11 +59,11 @@ namespace SmartLib.Repository
             await _context.AddAsync(entity);
             await _context.SaveChangesAsync();
 
-            var dto = _mapper.Map<BookDto>(entity);
+            var dto = _mapper.Map<BookResponseDto>(entity);
             return dto;
         }
 
-        public async Task<BookDto> UpdateBookAsync(int id, BookDto request)
+        public async Task<BookResponseDto> UpdateBookAsync(int id, CreateBookDto request)
         {
             if (request == null)
             {
@@ -79,7 +80,7 @@ namespace SmartLib.Repository
             _mapper.Map(request, entity);
             await _context.SaveChangesAsync();
 
-            var dto = _mapper.Map<BookDto>(entity);
+            var dto = _mapper.Map<BookResponseDto>(entity);
             return dto;
         }
 
@@ -96,7 +97,7 @@ namespace SmartLib.Repository
             await _context.SaveChangesAsync();
             return;
         }
-        public async Task<BookDto> GetBooksByNameAsync(string name)
+        public async Task<BookResponseDto> GetBooksByNameAsync(string name)
         {
             var entities = await _context.Books.FirstOrDefaultAsync(b => b.Title == name);
 
@@ -105,7 +106,7 @@ namespace SmartLib.Repository
                 throw new InvalidOperationException($"Book with name {name} not found.");
             }
 
-            var dto = _mapper.Map<BookDto>(entities);
+            var dto = _mapper.Map<BookResponseDto>(entities);
             return dto;
         }
 

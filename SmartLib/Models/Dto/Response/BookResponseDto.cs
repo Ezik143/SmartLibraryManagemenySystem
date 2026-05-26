@@ -1,6 +1,6 @@
-﻿namespace SmartLib.Models.Dto
+namespace SmartLib.Models.Dto.Response
 {
-    public class BookDto
+    public class BookResponseDto
     {
         public int BookId { get; set; }
         public string Title { get; set; } = string.Empty;

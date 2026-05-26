@@ -1,8 +1,8 @@
-﻿using SmartLib.Models.Entities;
+using SmartLib.Models.Entities;
 
-namespace SmartLib.Models.Dto
+namespace SmartLib.Models.Dto.Response
 {
-    public class FineDto
+    public class FineResponseDto
     {
         public string UserId { get; set; } = string.Empty;
         public int RecordId { get; set; }
