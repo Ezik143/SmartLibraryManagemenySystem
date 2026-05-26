@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
 using SmartLib.Models.Dto;
 
@@ -47,7 +46,7 @@ namespace SmartLib.Controllers
         public async Task<ActionResult<BorrowRecordDto>> CreateBorrowRecord(BorrowRecordDto request)
         {
             var borrowRecord = await _borrowRecord.CreateBorrowRecordAsync(request);
-            return Ok(borrowRecord);
+            return NoContent();
         }
 
         // PUT api/<BorrowRecordDto>/5
@@ -55,7 +54,7 @@ namespace SmartLib.Controllers
         public async Task<ActionResult<BorrowRecordDto>> UpdateBorrowRecord(int id, BorrowRecordDto request)
         {
             var borrowRecord = await _borrowRecord.UpdateBorrowRecordAsync(id, request);
-            return Ok(borrowRecord);
+            return NoContent();
         }
 
         // DELETE api/<BorrowRecordDto>/5

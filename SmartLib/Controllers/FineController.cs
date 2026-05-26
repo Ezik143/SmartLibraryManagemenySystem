@@ -1,10 +1,6 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using SmartLib.Data;
+﻿using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
 using SmartLib.Models.Dto;
-using SmartLib.Models.Entities;
-
 // FineController - Handles HTTP requests for fine management operations (CRUD)
 
 namespace SmartLib.Controllers
@@ -13,14 +9,11 @@ namespace SmartLib.Controllers
     [ApiController]
     public class FineController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
+
         private readonly IFineRepository _fine;
 
-        public FineController(ApplicationDbContext context, IMapper mapper, IFineRepository fine)
+        public FineController(IFineRepository fine)
         {
-            _context = context;
-            _mapper = mapper;
             _fine = fine;
         }
 
@@ -45,7 +38,7 @@ namespace SmartLib.Controllers
         public async Task<ActionResult<FineDto>> CreateFine(FineDto request)
         {
             var entityDto = await _fine.CreateFineAsync(request);
-            return Ok(entityDto);
+            return NoContent();
         }
 
         // PUT api/<FineController>/5
@@ -53,7 +46,7 @@ namespace SmartLib.Controllers
         public async Task<ActionResult<FineDto>> UpdateFine(int id, FineDto request)
         {
             var entityDto = await _fine.UpdateFineAsync(id, request);
-            return Ok(entityDto);
+            return NoContent();
         }
 
         // DELETE api/<FineController>/5
@@ -61,7 +54,7 @@ namespace SmartLib.Controllers
         public async Task<ActionResult> DeleteFine(int id)
         {
             await _fine.DeleteFineAsync(id);
-            return Ok();
+            return NoContent();
         }
     }
 }

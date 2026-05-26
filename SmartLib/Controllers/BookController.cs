@@ -1,10 +1,6 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SmartLib.Data;
+﻿using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
 using SmartLib.Models.Dto;
-using SmartLib.Models.Entities;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -14,15 +10,12 @@ namespace SmartLib.Controllers
     [ApiController]
     public class BookController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
+
 
         private readonly IBookRepository _book;
 
-        public BookController(ApplicationDbContext context, IMapper mapper, IBookRepository book)
+        public BookController(IBookRepository book)
         {
-            _context = context;
-            _mapper = mapper;
             _book = book;
         }
 
@@ -47,7 +40,7 @@ namespace SmartLib.Controllers
         public async Task<ActionResult<BookDto>> CreateBook(BookDto request)
         {
             var entityDto = await _book.CreateBookAsync(request);
-            return Ok(entityDto);
+            return NoContent();
         }
 
         // PUT api/<BookController>/5
@@ -55,7 +48,7 @@ namespace SmartLib.Controllers
         public async Task<ActionResult<BookDto>> UpdateBook(int id, BookDto request)
         {
             var entityDto = await _book.UpdateBookAsync(id, request);
-            return Ok(entityDto);
+            return NoContent();
         }
 
         // DELETE api/<BookController>/5
@@ -63,7 +56,7 @@ namespace SmartLib.Controllers
         public async Task<ActionResult> DeleteBook(int id)
         {
             await _book.DeleteBookAsync(id);
-            return Ok();
+            return NoContent();
         }
 
         [HttpGet("name/{name}")]

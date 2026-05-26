@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using SmartLib.Data;
 using SmartLib.Interfaces;
 using SmartLib.Models.Dto;
@@ -50,7 +51,7 @@ namespace SmartLib.Repository
         public async Task<IEnumerable<FineDto>> GetAllFinesAsync()
         {
             // Retrieve all fines from database
-            var entities = _context.Fines.ToList();
+            var entities = await _context.Fines.ToListAsync();
 
             var dto = _mapper.Map<IEnumerable<FineDto>>(entities);
             return dto;

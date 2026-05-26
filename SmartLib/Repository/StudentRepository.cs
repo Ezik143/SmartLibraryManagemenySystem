@@ -74,9 +74,20 @@ namespace SmartLib.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task<StudentDto> GetStudentByNameAsync(string name)
+        public async Task<IEnumerable<StudentDto>> GetStudentByNameAsync(string name)
         {
-            throw new NotImplementedException("GetStudentByNameAsync method is not implemented.");
+            if (name == null)
+            {
+                throw new InvalidDataException($"Student cannot be empty.");
+            }
+
+            var Userentity = _context.Students
+                                                        .Include(s => s.User)
+                                                        .Where(s => s.User != null && s.User.Role != UserRole.Student && s.User.Name == name)
+                                                        .ToList();
+
+            var dto = _mapper.Map<IEnumerable<StudentDto>>(Userentity);
+            return dto;
         }
 
         public async Task<StudentDto> UpdateStudentAsync(int id, StudentDto request)

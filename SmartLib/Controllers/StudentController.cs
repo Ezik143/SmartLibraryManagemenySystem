@@ -1,10 +1,6 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SmartLib.Data;
+﻿using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
 using SmartLib.Models.Dto;
-using SmartLib.Models.Entities;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -14,11 +10,9 @@ namespace SmartLib.Controllers
     [ApiController]
     public class StudentController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
         private readonly IStudentRepository _student;
-        public StudentController(ApplicationDbContext context, IStudentRepository student)
+        public StudentController(IStudentRepository student)
         {
-            _context = context;
             _student = student;
         }
         // GET: api/<StudentController>
@@ -42,7 +36,7 @@ namespace SmartLib.Controllers
         public async Task<ActionResult<StudentDto>> CreateStudent(StudentDto request)
         {
             var entityDto = await _student.CreateStudentAsync(request);
-            return Ok(entityDto);
+            return NoContent();
         }
 
         // PUT api/<StudentController>/5
@@ -50,7 +44,7 @@ namespace SmartLib.Controllers
         public async Task<ActionResult<StudentDto>> UpdateStudent(int id, StudentDto request)
         {
             var entityDto = await _student.UpdateStudentAsync(id, request);
-            return Ok(entityDto);
+            return NoContent();
         }
 
         // DELETE api/<StudentController>/5
