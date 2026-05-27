@@ -35,6 +35,7 @@ builder.Services.AddOptions<FineSettings>()
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IFineRepository, FineRepository>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
+builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 
 builder.Services.AddControllers()

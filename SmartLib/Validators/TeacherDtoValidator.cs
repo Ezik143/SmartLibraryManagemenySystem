@@ -8,6 +8,7 @@ namespace SmartLib.Validators
         public CreateTeacherDtoValidator()
         {
             RuleFor(x => x.Name).NotEmpty();
+            RuleFor(x => x.Email).NotEmpty().EmailAddress();
             RuleFor(x => x.Password).NotEmpty();
             RuleFor(x => x.DepartmentId).GreaterThan(0);
         }

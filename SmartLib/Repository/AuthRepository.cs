@@ -7,6 +7,7 @@ using SmartLib.Models.Dto.Create;
 using SmartLib.Models.Dto.Response;
 using SmartLib.Models.Entities;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 
@@ -54,81 +55,107 @@ namespace SmartLib.Repository
             return Task.FromResult(response);
         }
 
-        public async Task<StudentResponseDto> RegisterStudentAsync(CreateStudentDto request)
+        public Task RefreshTokenAsync(string email, string refreshToken)
         {
-            var UserExist = await _userManager.FindByEmailAsync(request.Email);
-            if (UserExist != null)
+            throw new NotImplementedException();
+        }
+
+        private async Task<ApplicationUser> CreateUserAsync(
+            string name,
+            string email,
+            string password,
+            UserRole role,
+            Department department)
+        {
+            if (string.IsNullOrWhiteSpace(name))
             {
-                throw new Exception("User already exist");
+                throw new ArgumentException("Name is required.", nameof(name));
             }
 
-            ApplicationUser user = new ApplicationUser()
+            if (string.IsNullOrWhiteSpace(email))
             {
-                UserName = request.Email,
-                Email = request.Email,
-                Department = request.Department,
-                CreatedAt = DateTime.UtcNow,
+                throw new ArgumentException("Email is required.", nameof(email));
+            }
+
+            var normalizedEmail = email.Trim();
+            var trimmedName = name.Trim();
+
+            var existingUser = await _userManager.FindByEmailAsync(normalizedEmail);
+            if (existingUser != null)
+            {
+                throw new InvalidOperationException("User already exist");
+            }
+
+            var user = new ApplicationUser
+            {
+                Name = trimmedName,
+                UserName = trimmedName,
+                Email = normalizedEmail,
+                Role = role,
+                IsAdmin = false,
+                Department = department,
+                CreatedAt = DateTime.UtcNow
             };
 
-            var result = await _userManager.CreateAsync(user, request.Password);
-
+            var result = await _userManager.CreateAsync(user, password);
             if (!result.Succeeded)
             {
-                throw new Exception("Error occurred while creating user");
+                var errorMessage = string.Join("; ", result.Errors.Select(e => e.Description));
+                throw new InvalidOperationException($"Error occurred while creating user: {errorMessage}");
             }
 
-            Student createStudent = new Student()
-            {
-                UserId = user.Id,
-                Section = request.Section,
-                YearLevel = request.YearLevel,
-                CreatedAt = DateTime.UtcNow,
-                IsActive = request.IsActive
-            };
+            return user;
+        }
 
-            var student = await _context.Students.AddAsync(createStudent);
+        public async Task<StudentResponseDto> RegisterStudentAsync(CreateStudentDto request)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request), "Student data cannot be null.");
+            }
+
+            var user = await CreateUserAsync(
+                request.Name,
+                request.Email,
+                request.Password,
+                UserRole.Student,
+                request.Department);
+
+            var entity = _mapper.Map<Student>(request);
+            entity.UserId = user.Id;
+            entity.User = user;
+            entity.CreatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            await _context.Students.AddAsync(entity);
             await _context.SaveChangesAsync();
-            var studentResponse = _mapper.Map<StudentResponseDto>(student.Entity);
+            var studentResponse = _mapper.Map<StudentResponseDto>(entity);
             return studentResponse;
         }
 
         public async Task<TeacherResponseDto> RegisterTeacherAsync(CreateTeacherDto request)
         {
-            var UserExist = await _userManager.FindByEmailAsync(request.Email);
-            if (UserExist != null)
+            if (request == null)
             {
-                throw new Exception("User already exist");
+                throw new ArgumentNullException(nameof(request), "Teacher data cannot be null.");
             }
 
-            ApplicationUser user = new ApplicationUser()
-            {
-                UserName = request.Email,
-                Email = request.Email,
-                Department = request.Department,
-                CreatedAt = DateTime.UtcNow,
-            };
+            var user = await CreateUserAsync(
+                request.Name,
+                request.Email,
+                request.Password,
+                UserRole.Teacher,
+                request.Department);
 
-            var result = await _userManager.CreateAsync(user, request.Password);
+            var entity = _mapper.Map<Teacher>(request);
+            entity.UserId = user.Id;
+            entity.User = user;
+            entity.CreatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = DateTime.UtcNow;
 
-            if (!result.Succeeded)
-            {
-                throw new Exception("Error occurred while creating user");
-            }
-
-            Teacher createTeacher = new Teacher()
-            {
-                UserId = user.Id,
-                User = user,
-                DepartmentId = request.DepartmentId,
-                Department = request.Department,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                IsActive = request.IsActive
-            };
-
-            var teacher = await _context.Teachers.AddAsync(createTeacher);
+            await _context.Teachers.AddAsync(entity);
             await _context.SaveChangesAsync();
-            var teacherResponse = _mapper.Map<TeacherResponseDto>(teacher.Entity);
+            var teacherResponse = _mapper.Map<TeacherResponseDto>(entity);
             return teacherResponse;
         }
 

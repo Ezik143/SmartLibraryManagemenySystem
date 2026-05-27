@@ -31,5 +31,12 @@ namespace SmartLib.Controllers
             var response = await _authRepository.RegisterStudentAsync(request);
             return Ok(response);
         }
+
+        [HttpPost("register/teacher")]
+        public async Task<ActionResult<TeacherResponseDto>> RegisterTeacher([FromBody] CreateTeacherDto request)
+        {
+            var response = await _authRepository.RegisterTeacherAsync(request);
+            return Ok(response);
+        }
     }
 }

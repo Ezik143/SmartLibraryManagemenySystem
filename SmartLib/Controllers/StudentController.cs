@@ -12,9 +12,12 @@ namespace SmartLib.Controllers
     public class StudentController : ControllerBase
     {
         private readonly IStudentRepository _student;
-        public StudentController(IStudentRepository student)
+        private readonly IAuthRepository _authRepository;
+
+        public StudentController(IStudentRepository student, IAuthRepository authRepository)
         {
             _student = student;
+            _authRepository = authRepository;
         }
         // GET: api/<StudentController>
         [HttpGet]
@@ -36,7 +39,7 @@ namespace SmartLib.Controllers
         [HttpPost]
         public async Task<ActionResult<StudentResponseDto>> CreateStudent(CreateStudentDto request)
         {
-            var entityDto = await _student.CreateStudentAsync(request);
+            await _authRepository.RegisterStudentAsync(request);
             return NoContent();
         }
 

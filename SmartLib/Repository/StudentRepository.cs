@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SmartLib.Data;
 using SmartLib.Interfaces;
@@ -14,13 +13,11 @@ namespace SmartLib.Repository
     {
         private readonly IMapper _mapper;
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        public StudentRepository(ApplicationDbContext context, IMapper mapper, UserManager<ApplicationUser> userManager)
+        public StudentRepository(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
-            _userManager = userManager;
         }
 
 
@@ -41,59 +38,6 @@ namespace SmartLib.Repository
             }
 
             var dto = _mapper.Map<StudentResponseDto>(entity);
-            return dto;
-        }
-
-        public async Task<StudentResponseDto> CreateStudentAsync(CreateStudentDto request)
-        {
-
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request), "Student data cannot be null.");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.Name))
-            {
-                throw new InvalidOperationException("Student name is required.");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.Password))
-            {
-                throw new InvalidOperationException("Password is required.");
-            }
-
-            var existingUser = await _userManager.FindByNameAsync(request.Name.Trim());
-            if (existingUser != null)
-            {
-                throw new InvalidOperationException("User with this name already exists.");
-            }
-
-            var user = new ApplicationUser
-            {
-                Name = request.Name.Trim(),
-                UserName = request.Name.Trim(),
-                Role = UserRole.Student,
-                IsAdmin = false,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            var createUserResult = await _userManager.CreateAsync(user, request.Password);
-            if (!createUserResult.Succeeded)
-            {
-                var errorMessage = string.Join("; ", createUserResult.Errors.Select(e => e.Description));
-                throw new InvalidOperationException($"Failed to create user: {errorMessage}");
-            }
-
-            var entity = _mapper.Map<Student>(request);
-            entity.UserId = user.Id;
-            entity.CreatedAt = DateTime.UtcNow;
-            entity.UpdatedAt = DateTime.UtcNow;
-
-            await _context.AddAsync(entity);
-            await _context.SaveChangesAsync();
-
-            var dto = _mapper.Map<StudentResponseDto>(entity);
-
             return dto;
         }
 
