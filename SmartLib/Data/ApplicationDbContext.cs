@@ -10,6 +10,7 @@ namespace SmartLib.Data
         {
 
         }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Book> Books { get; set; }
         public DbSet<BorrowRecord> BorrowRecords { get; set; }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }

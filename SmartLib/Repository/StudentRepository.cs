@@ -74,8 +74,7 @@ namespace SmartLib.Repository
                 UserName = request.Name.Trim(),
                 Role = UserRole.Student,
                 IsAdmin = false,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow
             };
 
             var createUserResult = await _userManager.CreateAsync(user, request.Password);

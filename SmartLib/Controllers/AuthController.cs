@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SmartLib.Interfaces;
+using SmartLib.Models.Dto.Create;
+using SmartLib.Models.Dto.Response;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -8,36 +11,25 @@ namespace SmartLib.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        // GET: api/<AuthController>
-        [HttpGet]
-        public IEnumerable<string> Get()
+        private readonly IAuthRepository _authRepository;
+
+        public AuthController(IAuthRepository authRepository)
         {
-            return new string[] { "value1", "value2" };
+            _authRepository = authRepository;
         }
 
-        // GET api/<AuthController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpPost("login")]
+        public async Task<ActionResult<ApplicationUserResponse>> Login([FromBody] LoginDto request)
         {
-            return "value";
+            var response = await _authRepository.LoginAsync(request.Email, request.Password);
+            return Ok(response);
         }
 
-        // POST api/<AuthController>
-        [HttpPost]
-        public void Post([FromBody] string value)
+        [HttpPost("register/student")]
+        public async Task<ActionResult<StudentResponseDto>> RegisterStudent([FromBody] CreateStudentDto request)
         {
-        }
-
-        // PUT api/<AuthController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<AuthController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            var response = await _authRepository.RegisterStudentAsync(request);
+            return Ok(response);
         }
     }
 }
