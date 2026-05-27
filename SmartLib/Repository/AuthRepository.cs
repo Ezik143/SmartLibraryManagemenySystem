@@ -48,7 +48,7 @@ namespace SmartLib.Repository
                 throw new Exception("Invalid password");
             }
 
-            var tokenValue =  GeneratejwtToken(user);
+            var tokenValue = GeneratejwtToken(user);
 
             var response = _mapper.Map<ApplicationUserResponse>(user);
             return Task.FromResult(response);
@@ -72,7 +72,7 @@ namespace SmartLib.Repository
 
             var result = await _userManager.CreateAsync(user, request.Password);
 
-            if(!result.Succeeded)
+            if (!result.Succeeded)
             {
                 throw new Exception("Error occurred while creating user");
             }
@@ -92,13 +92,53 @@ namespace SmartLib.Repository
             return studentResponse;
         }
 
+        public async Task<TeacherResponseDto> RegisterTeacherAsync(CreateTeacherDto request)
+        {
+            var UserExist = await _userManager.FindByEmailAsync(request.Email);
+            if (UserExist != null)
+            {
+                throw new Exception("User already exist");
+            }
+
+            ApplicationUser user = new ApplicationUser()
+            {
+                UserName = request.Email,
+                Email = request.Email,
+                Department = request.Department,
+                CreatedAt = DateTime.UtcNow,
+            };
+
+            var result = await _userManager.CreateAsync(user, request.Password);
+
+            if (!result.Succeeded)
+            {
+                throw new Exception("Error occurred while creating user");
+            }
+
+            Teacher createTeacher = new Teacher()
+            {
+                UserId = user.Id,
+                User = user,
+                DepartmentId = request.DepartmentId,
+                Department = request.Department,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                IsActive = request.IsActive
+            };
+
+            var teacher = await _context.Teachers.AddAsync(createTeacher);
+            await _context.SaveChangesAsync();
+            var teacherResponse = _mapper.Map<TeacherResponseDto>(teacher.Entity);
+            return teacherResponse;
+        }
+
         private async Task<AuthResponse> GeneratejwtToken(ApplicationUser user)
         {
             var authClaims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty), 
+                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };

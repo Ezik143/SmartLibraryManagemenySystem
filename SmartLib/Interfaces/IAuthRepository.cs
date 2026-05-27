@@ -5,8 +5,8 @@ namespace SmartLib.Interfaces
 {
     public interface IAuthRepository
     {
-       Task<ApplicationUserResponse> LoginAsync(string email, string password);
+        Task<ApplicationUserResponse> LoginAsync(string email, string password);
         Task<StudentResponseDto> RegisterStudentAsync(CreateStudentDto request);
-        
+        Task<TeacherResponseDto> RegisterTeacherAsync(CreateTeacherDto request);
     }
 }
