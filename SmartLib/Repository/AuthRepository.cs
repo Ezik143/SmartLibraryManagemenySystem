@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SmartLib.Data;
 using SmartLib.Interfaces;
@@ -20,12 +21,15 @@ namespace SmartLib.Repository
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
+
+        private readonly TokenValidationParameters _tokenValidationParameters;
         public AuthRepository(
                               ApplicationDbContext context,
                               RoleManager<IdentityRole> roleManager,
                               UserManager<ApplicationUser> userManager,
                               IConfiguration configuration,
-                              IMapper mapper
+                              IMapper mapper,
+                              TokenValidationParameters tokenValidationParameters
                              )
         {
             _context = context;
@@ -33,31 +37,49 @@ namespace SmartLib.Repository
             _userManager = userManager;
             _configuration = configuration;
             _mapper = mapper;
+            _tokenValidationParameters = tokenValidationParameters;
         }
 
-        public Task<ApplicationUserResponse> LoginAsync(string email, string password)
+        public async Task<ApplicationUserResponse> LoginAsync(string email, string password)
         {
-            var user = _userManager.FindByEmailAsync(email).Result;
+            var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
             {
                 throw new Exception("User not found");
             }
 
-            var isMatch = _userManager.CheckPasswordAsync(user, password).Result;
+            var isMatch = await _userManager.CheckPasswordAsync(user, password);
             if (!isMatch)
             {
                 throw new Exception("Invalid password");
             }
 
-            var tokenValue = GeneratejwtToken(user);
+            var tokenValue = await GenerateJwtTokenAsync(user, string.Empty);
 
             var response = _mapper.Map<ApplicationUserResponse>(user);
-            return Task.FromResult(response);
+            return response;
         }
 
-        public Task RefreshTokenAsync(string email, string refreshToken)
+        public async Task<AuthResponse> RefreshTokenAsync(string email, string refreshToken)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var result = await VeryfyAndGenerateTokenAsync(new CreateRefreshToken
+                {
+                    Token = email,
+                    RefreshToken = refreshToken
+                });
+
+                if (result == null)
+                {
+                    throw new Exception("invalid token");
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error refreshing token: " + ex.Message);
+            }
         }
 
         private async Task<ApplicationUser> CreateUserAsync(
@@ -159,7 +181,7 @@ namespace SmartLib.Repository
             return teacherResponse;
         }
 
-        private async Task<AuthResponse> GeneratejwtToken(ApplicationUser user)
+        private async Task<AuthResponse> GenerateJwtTokenAsync(ApplicationUser user, string existingRefreshToken)
         {
             var authClaims = new List<Claim>
             {
@@ -183,27 +205,117 @@ namespace SmartLib.Repository
 
             var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 
-            var refreshToken = new RefreshToken
+            var refreshToken = new RefreshToken();
+
+            if (string.IsNullOrEmpty(existingRefreshToken))
             {
-                JwtId = token.Id,
-                IsRevoked = false,
-                UserId = user.Id,
-                DateAdded = DateTime.UtcNow,
-                DateExpire = DateTime.UtcNow.AddMonths(6),
-                Token = Guid.NewGuid().ToString() + "-" + Guid.NewGuid().ToString()
-            };
-
-            await _context.RefreshTokens.AddAsync(refreshToken);
-            await _context.SaveChangesAsync();
-
+                refreshToken = new RefreshToken
+                {
+                    JwtId = token.Id,
+                    IsRevoked = false,
+                    UserId = user.Id,
+                    DateAdded = DateTime.UtcNow,
+                    DateExpire = DateTime.UtcNow.AddMonths(6),
+                    Token = Guid.NewGuid().ToString() + "-" + Guid.NewGuid().ToString()
+                };
+                await _context.RefreshTokens.AddAsync(refreshToken);
+                await _context.SaveChangesAsync();
+            }
             var response = new AuthResponse
             {
                 Token = jwtToken,
-                RefreshToken = refreshToken.Token,
+                RefreshToken = (string.IsNullOrEmpty(existingRefreshToken)) ? refreshToken.Token : existingRefreshToken,
                 ExpireAt = token.ValidTo
             };
 
             return response;
+        }
+        private async Task<AuthResponse?> VeryfyAndGenerateTokenAsync(CreateRefreshToken payload)
+        {
+            var jwtTokenHandler = new JwtSecurityTokenHandler();
+
+            try
+            {
+                //1 - check JWT token format
+                var tokenInVerification = jwtTokenHandler.ValidateToken(payload.Token, _tokenValidationParameters, out var validatedToken);
+                //2 - Encryption Algorithm
+                if (validatedToken is JwtSecurityToken jwtSecurityToken)
+                {
+                    var result = jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase);
+                    if (result == false)
+                    {
+                        return null;
+                    }
+                }
+                //3 - Validate expiry date 
+                var utcExpiryDate = long.Parse(tokenInVerification.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Exp)?.Value ?? "0");
+
+                var expiryDate = unixTimeStampToDateTimeInUTC(utcExpiryDate);
+                if (expiryDate > DateTime.UtcNow)
+                {
+                    throw new Exception("Token has not expired yet");
+                }
+
+                //4 - Refresh Token exist in database
+                var dbRefreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(x => x.Token == payload.RefreshToken);
+                if (dbRefreshToken == null)
+                {
+                    throw new Exception("Refresh token does not exist");
+                }
+                else
+                {
+                    //5- validate id
+                    var jti = tokenInVerification.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Jti)?.Value;
+
+                    if (dbRefreshToken.JwtId != jti)
+                    {
+                        throw new Exception("Token mismatch");
+                    }
+                    //check 6 - is token expired or revoked
+                    if (dbRefreshToken.DateExpire < DateTime.UtcNow)
+                    {
+                        throw new Exception("Refresh token has expired");
+                    }
+                    //check 7 - is token revoked
+                    if (dbRefreshToken.IsRevoked)
+                    {
+                        throw new Exception("Refresh token has been revoked");
+                    }
+
+                    //Generate new token (with existing refresh token)
+                    var dbUser = await _userManager.FindByIdAsync(dbRefreshToken.UserId);
+                    if (dbUser == null)
+                    {
+                        throw new Exception("User not found for refresh token");
+                    }
+
+                    return await GenerateJwtTokenAsync(dbUser, payload.RefreshToken);
+                }
+            }
+            catch (SecurityTokenExpiredException)
+            {
+                var dbRefreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(x => x.Token == payload.RefreshToken);
+                if (dbRefreshToken == null)
+                {
+                    throw new Exception("Refresh token does not exist");
+                }
+                //Generate new token (with existing refresh token)
+                var dbUser = await _userManager.FindByIdAsync(dbRefreshToken.UserId);
+                if (dbUser == null)
+                {
+                    throw new Exception("User not found for refresh token");
+                }
+
+                return await GenerateJwtTokenAsync(dbUser, payload.RefreshToken);
+            }
+        }
+
+
+        private DateTime unixTimeStampToDateTimeInUTC(long unixTimeStamp)
+        {
+            var dateTimeVal = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            dateTimeVal = dateTimeVal.AddSeconds(unixTimeStamp).ToUniversalTime();
+            return dateTimeVal;
         }
     }
 }

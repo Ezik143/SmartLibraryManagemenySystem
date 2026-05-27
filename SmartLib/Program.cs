@@ -22,6 +22,22 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+//Token validation parameters for JWT authentication
+var tokenValidationParameters = new TokenValidationParameters
+{
+    ValidateIssuer = true,
+    ValidateAudience = true,
+    ValidateLifetime = true,
+    ValidateIssuerSigningKey = true,        
+    ValidIssuer = builder.Configuration["JWT:issuer"],
+    ValidAudience = builder.Configuration["JWT:audience"],
+    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+        builder.Configuration["JWT:key"] ?? throw new InvalidOperationException("JWT key is missing in configuration."))),
+    ClockSkew = TimeSpan.Zero // Optional: Set clock skew to zero to prevent token expiration issues
+};
+
+builder.Services.AddSingleton(tokenValidationParameters);
+
 builder.Services.AddIdentityCore<ApplicationUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -67,16 +83,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
             throw new InvalidOperationException("JWT configuration is missing in appsettings.json");
 
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtIssuer,
-            ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
-        };
+        options.TokenValidationParameters = tokenValidationPara;
     });
 
 var app = builder.Build();
