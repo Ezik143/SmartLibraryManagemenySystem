@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
 using SmartLib.Models.Dto.Create;
 using SmartLib.Models.Dto.Response;
@@ -19,6 +20,7 @@ namespace SmartLib.Controllers
 
 
         // GET: api/<BorrowRecordDto>
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BorrowRecordResponseDto>>> GetAllBorrowRecordController()
         {
@@ -27,13 +29,14 @@ namespace SmartLib.Controllers
         }
 
         // GET api/<BorrowRecordDto>/5
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<ActionResult<BorrowRecordResponseDto>> GetBorrowRecordById(int id)
         {
             var borrowRecord = await _borrowRecord.GetBorrowRecordByIdAsync(id);
             return Ok(borrowRecord);
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpGet("fines/{id}")]
         public async Task<ActionResult<BorrowRecordResponseDto>> GetBorrowRecordWithFine(int id)
         {
@@ -43,6 +46,7 @@ namespace SmartLib.Controllers
 
 
         // POST api/<BorrowRecordDto>
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<BorrowRecordResponseDto>> CreateBorrowRecord(CreateBorrowRecordDto request)
         {
@@ -51,6 +55,7 @@ namespace SmartLib.Controllers
         }
 
         // PUT api/<BorrowRecordDto>/5
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult<BorrowRecordResponseDto>> UpdateBorrowRecord(int id, CreateBorrowRecordDto request)
         {
@@ -59,6 +64,7 @@ namespace SmartLib.Controllers
         }
 
         // DELETE api/<BorrowRecordDto>/5
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteBorrowRecord(int id)
         {
@@ -67,12 +73,13 @@ namespace SmartLib.Controllers
         }
 
         [HttpPost("return/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<BorrowRecordResponseDto>> ReturnBook(int id)
         {
             var borrowRecord = await _borrowRecord.ReturnBookAsync(id);
             return Ok(borrowRecord);
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpGet("Overdue")]
         public async Task<ActionResult<IEnumerable<BorrowRecordResponseDto>>> GetAllOverdueRecord()
         {
@@ -81,6 +88,7 @@ namespace SmartLib.Controllers
         }
 
         [HttpGet("Paid")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<BorrowRecordResponseDto>>> GetAllPaidRecord()
         {
             var borrowRecord = await _borrowRecord.GetAllPaidRecordAsync();

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
 using SmartLib.Models.Dto.Create;
 using SmartLib.Models.Dto.Response;
@@ -37,6 +38,7 @@ namespace SmartLib.Controllers
         }
 
         // POST api/<BookController>
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<BookResponseDto>> CreateBook(CreateBookDto request)
         {
@@ -44,7 +46,8 @@ namespace SmartLib.Controllers
             return NoContent();
         }
 
-        // PUT api/<BookController>/5
+        // PUT api/<BookController>/
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult<BookResponseDto>> UpdateBook(int id, CreateBookDto request)
         {
@@ -53,6 +56,7 @@ namespace SmartLib.Controllers
         }
 
         // DELETE api/<BookController>/5
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteBook(int id)
         {

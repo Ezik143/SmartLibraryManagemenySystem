@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
 using SmartLib.Models.Dto.Create;
 using SmartLib.Models.Dto.Response;
@@ -21,6 +22,7 @@ namespace SmartLib.Controllers
         }
 
         // GET: api/<TeacherController>
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TeacherResponseDto>>> GetAllTeachers()
         {
@@ -29,6 +31,7 @@ namespace SmartLib.Controllers
         }
 
         // GET api/<TeacherController>/5
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<ActionResult<TeacherResponseDto>> GetTeacherById(int id)
         {
@@ -37,6 +40,7 @@ namespace SmartLib.Controllers
         }
 
         // POST api/<TeacherController>
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<TeacherResponseDto>> CreateTeacher(CreateTeacherDto request)
         {
@@ -45,6 +49,7 @@ namespace SmartLib.Controllers
         }
 
         // PUT api/<TeacherController>/5
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult<TeacherResponseDto>> UpdateTeacher(int id, CreateTeacherDto request)
         {
@@ -53,6 +58,7 @@ namespace SmartLib.Controllers
         }
 
         // DELETE api/<TeacherController>/5
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteTeacher(int id)
         {

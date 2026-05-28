@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
 using SmartLib.Models.Dto.Create;
 using SmartLib.Models.Dto.Response;
@@ -17,7 +18,7 @@ namespace SmartLib.Controllers
         {
             _fine = fine;
         }
-
+        [Authorize(Roles = "Admin")]
         // GET: api/<FineController>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FineResponseDto>>> GetAllFines()
@@ -25,7 +26,7 @@ namespace SmartLib.Controllers
             var entitiesDto = await _fine.GetAllFinesAsync();
             return Ok(entitiesDto);
         }
-
+        [Authorize(Roles = "Admin")]
         // GET api/<FineController>/5
         [HttpGet("{id}")]
         public async Task<ActionResult<FineResponseDto>> GetFineById(int id)
@@ -33,7 +34,7 @@ namespace SmartLib.Controllers
             var entityDto = await _fine.GetFineByIdAsync(id);
             return Ok(entityDto);
         }
-
+        [Authorize(Roles = "Admin")]
         // POST api/<FineController>
         [HttpPost]
         public async Task<ActionResult<FineResponseDto>> CreateFine(CreateFineDto request)
@@ -41,7 +42,7 @@ namespace SmartLib.Controllers
             var entityDto = await _fine.CreateFineAsync(request);
             return NoContent();
         }
-
+        [Authorize(Roles = "Admin")]
         // PUT api/<FineController>/5
         [HttpPut("{id}")]
         public async Task<ActionResult<FineResponseDto>> UpdateFine(int id, CreateFineDto request)
@@ -49,7 +50,7 @@ namespace SmartLib.Controllers
             var entityDto = await _fine.UpdateFineAsync(id, request);
             return NoContent();
         }
-
+        [Authorize(Roles = "Admin")]
         // DELETE api/<FineController>/5
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteFine(int id)
