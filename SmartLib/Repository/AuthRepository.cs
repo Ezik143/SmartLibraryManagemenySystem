@@ -82,53 +82,6 @@ namespace SmartLib.Repository
             }
         }
 
-        private async Task<ApplicationUser> CreateUserAsync(
-            string name,
-            string email,
-            string password,
-            UserRole role,
-            Department department)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException("Name is required.", nameof(name));
-            }
-
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                throw new ArgumentException("Email is required.", nameof(email));
-            }
-
-            var normalizedEmail = email.Trim();
-            var trimmedName = name.Trim();
-
-            var existingUser = await _userManager.FindByEmailAsync(normalizedEmail);
-            if (existingUser != null)
-            {
-                throw new InvalidOperationException("User already exist");
-            }
-
-            var user = new ApplicationUser
-            {
-                Name = trimmedName,
-                UserName = trimmedName,
-                Email = normalizedEmail,
-                Role = role,
-                IsAdmin = false,
-                Department = department,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            var result = await _userManager.CreateAsync(user, password);
-            if (!result.Succeeded)
-            {
-                var errorMessage = string.Join("; ", result.Errors.Select(e => e.Description));
-                throw new InvalidOperationException($"Error occurred while creating user: {errorMessage}");
-            }
-
-            return user;
-        }
-
         public async Task<StudentResponseDto> RegisterStudentAsync(CreateStudentDto request)
         {
             if (request == null)
@@ -136,12 +89,17 @@ namespace SmartLib.Repository
                 throw new ArgumentNullException(nameof(request), "Student data cannot be null.");
             }
 
-            var user = await CreateUserAsync(
-                request.Name,
-                request.Email,
-                request.Password,
-                UserRole.Student,
-                request.Department);
+            var user = new ApplicationUser()
+            {
+                Email = request.Email,
+                UserName = request.Email,
+                Name = request.Name,
+                IsAdmin = false,
+                Department = request.Department,
+                CreatedAt = DateTime.UtcNow,
+            };
+            await _userManager.CreateAsync(user, request.Password);
+            await _userManager.AddToRoleAsync(user, UserRole.Student.ToString());
 
             var entity = _mapper.Map<Student>(request);
             entity.UserId = user.Id;
@@ -162,12 +120,20 @@ namespace SmartLib.Repository
                 throw new ArgumentNullException(nameof(request), "Teacher data cannot be null.");
             }
 
-            var user = await CreateUserAsync(
-                request.Name,
-                request.Email,
-                request.Password,
-                UserRole.Teacher,
-                request.Department);
+            var user = new ApplicationUser()
+            {
+                Email = request.Email,
+                UserName = request.Email,
+                Name = request.Name,
+                IsAdmin = false,
+                Department = request.Department,
+                CreatedAt = DateTime.UtcNow,
+            };
+
+            await _userManager.CreateAsync(user, request.Password);
+            await _userManager.AddToRoleAsync(user, UserRole.Teacher.ToString());
+
+
 
             var entity = _mapper.Map<Teacher>(request);
             entity.UserId = user.Id;
@@ -191,6 +157,13 @@ namespace SmartLib.Repository
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
+
+            //Add UserRoles
+            var userRoles = await _userManager.GetRolesAsync(user);
+            foreach (var userRole in userRoles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
 
             var jwtSecret = _configuration["JWT:Secret"] ?? throw new InvalidOperationException("JWT:Secret is missing in configuration.");
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));

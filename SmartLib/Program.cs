@@ -83,7 +83,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
             throw new InvalidOperationException("JWT configuration is missing in appsettings.json");
 
-        options.TokenValidationParameters = tokenValidationPara;
+        options.TokenValidationParameters = tokenValidationParameters;
     });
 
 var app = builder.Build();

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
 using SmartLib.Models.Dto.Create;
 using SmartLib.Models.Dto.Response;
@@ -20,6 +21,7 @@ namespace SmartLib.Controllers
             _authRepository = authRepository;
         }
         // GET: api/<StudentController>
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<StudentResponseDto>>> GetAllStudent()
         {
@@ -28,6 +30,7 @@ namespace SmartLib.Controllers
         }
 
         // GET api/<StudentController>/5
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<ActionResult<StudentResponseDto>> GetStudentById(int id)
         {
@@ -36,6 +39,7 @@ namespace SmartLib.Controllers
         }
 
         // POST api/<StudentController>
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<StudentResponseDto>> CreateStudent(CreateStudentDto request)
         {
@@ -43,7 +47,8 @@ namespace SmartLib.Controllers
             return NoContent();
         }
 
-        // PUT api/<StudentController>/5
+        // PUT api/<StudentController>/
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult<StudentResponseDto>> UpdateStudent(int id, CreateStudentDto request)
         {
@@ -51,7 +56,8 @@ namespace SmartLib.Controllers
             return NoContent();
         }
 
-        // DELETE api/<StudentController>/5
+        // DELETE api/<StudentController>/
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteStudent(int id)
         {
