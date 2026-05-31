@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SmartLib.Data;
@@ -9,6 +12,7 @@ using SmartLib.Models.Dto.Response;
 using SmartLib.Models.Entities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 
@@ -21,6 +25,8 @@ namespace SmartLib.Repository
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
+        private readonly IEmailSender _emailSender;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         private readonly TokenValidationParameters _tokenValidationParameters;
         public AuthRepository(
@@ -29,7 +35,9 @@ namespace SmartLib.Repository
                               UserManager<ApplicationUser> userManager,
                               IConfiguration configuration,
                               IMapper mapper,
-                              TokenValidationParameters tokenValidationParameters
+                              TokenValidationParameters tokenValidationParameters,
+                              IEmailSender emailSender,
+                              IHttpContextAccessor httpContextAccessor
                              )
         {
             _context = context;
@@ -38,6 +46,8 @@ namespace SmartLib.Repository
             _configuration = configuration;
             _mapper = mapper;
             _tokenValidationParameters = tokenValidationParameters;
+            _emailSender = emailSender;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<ApplicationUserResponse> LoginAsync(string email, string password)
@@ -95,11 +105,23 @@ namespace SmartLib.Repository
                 UserName = request.Email,
                 Name = request.Name,
                 IsAdmin = false,
+                Role = UserRole.Student,
                 Department = request.Department,
                 CreatedAt = DateTime.UtcNow,
             };
-            await _userManager.CreateAsync(user, request.Password);
-            await _userManager.AddToRoleAsync(user, UserRole.Student.ToString());
+            var createResult = await _userManager.CreateAsync(user, request.Password);
+            if (!createResult.Succeeded)
+            {
+                var errors = string.Join("; ", createResult.Errors.Select(error => error.Description));
+                throw new InvalidOperationException($"Student account could not be created. {errors}");
+            }
+
+            var roleResult = await _userManager.AddToRoleAsync(user, UserRole.Student.ToString());
+            if (!roleResult.Succeeded)
+            {
+                var errors = string.Join("; ", roleResult.Errors.Select(error => error.Description));
+                throw new InvalidOperationException($"Student role could not be assigned. {errors}");
+            }
 
             var entity = _mapper.Map<Student>(request);
             entity.UserId = user.Id;
@@ -109,6 +131,8 @@ namespace SmartLib.Repository
 
             await _context.Students.AddAsync(entity);
             await _context.SaveChangesAsync();
+            await SendConfirmationEmailAsync(user);
+
             var studentResponse = _mapper.Map<StudentResponseDto>(entity);
             return studentResponse;
         }
@@ -126,13 +150,24 @@ namespace SmartLib.Repository
                 UserName = request.Email,
                 Name = request.Name,
                 IsAdmin = false,
+                Role = UserRole.Teacher,
                 Department = request.Department,
                 CreatedAt = DateTime.UtcNow,
             };
 
-            await _userManager.CreateAsync(user, request.Password);
-            await _userManager.AddToRoleAsync(user, UserRole.Teacher.ToString());
+            var createResult = await _userManager.CreateAsync(user, request.Password);
+            if (!createResult.Succeeded)
+            {
+                var errors = string.Join("; ", createResult.Errors.Select(error => error.Description));
+                throw new InvalidOperationException($"Teacher account could not be created. {errors}");
+            }
 
+            var roleResult = await _userManager.AddToRoleAsync(user, UserRole.Teacher.ToString());
+            if (!roleResult.Succeeded)
+            {
+                var errors = string.Join("; ", roleResult.Errors.Select(error => error.Description));
+                throw new InvalidOperationException($"Teacher role could not be assigned. {errors}");
+            }
 
 
             var entity = _mapper.Map<Teacher>(request);
@@ -143,8 +178,87 @@ namespace SmartLib.Repository
 
             await _context.Teachers.AddAsync(entity);
             await _context.SaveChangesAsync();
+            await SendConfirmationEmailAsync(user);
+
             var teacherResponse = _mapper.Map<TeacherResponseDto>(entity);
             return teacherResponse;
+        }
+
+        public async Task ConfirmEmailAsync(string userId, string token)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new ArgumentException("User id is required.", nameof(userId));
+            }
+
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                throw new ArgumentException("Confirmation token is required.", nameof(token));
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found.");
+            }
+
+            string decodedToken;
+            try
+            {
+                decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+            }
+            catch (FormatException ex)
+            {
+                throw new InvalidOperationException("Invalid confirmation token.", ex);
+            }
+
+            var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join("; ", result.Errors.Select(error => error.Description));
+                throw new InvalidOperationException($"Email could not be confirmed. {errors}");
+            }
+        }
+
+        private async Task SendConfirmationEmailAsync(ApplicationUser user)
+        {
+            if (string.IsNullOrWhiteSpace(user.Email))
+            {
+                throw new InvalidOperationException("User email is required to send a confirmation email.");
+            }
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+            var confirmationUrl = BuildConfirmationUrl(user.Id, encodedToken);
+            var encodedName = WebUtility.HtmlEncode(user.Name);
+            var encodedUrl = WebUtility.HtmlEncode(confirmationUrl);
+
+            var message = $"""
+                <p>Hello {encodedName},</p>
+                <p>Please confirm your SmartLib account by clicking the link below:</p>
+                <p><a href="{encodedUrl}">Confirm email</a></p>
+                <p>If the link does not open, copy and paste this URL into your browser:</p>
+                <p>{encodedUrl}</p>
+                """;
+
+            await _emailSender.SendEmailAsync(user.Email, "Confirm your SmartLib account", message);
+        }
+
+        private string BuildConfirmationUrl(string userId, string token)
+        {
+            var request = _httpContextAccessor.HttpContext?.Request;
+            if (request == null)
+            {
+                throw new InvalidOperationException("The current HTTP request is required to build a confirmation link.");
+            }
+
+            var confirmationPath = $"{request.Scheme}://{request.Host}{request.PathBase}/api/Auth/confirm-email";
+
+            return QueryHelpers.AddQueryString(confirmationPath, new Dictionary<string, string?>
+            {
+                ["userId"] = userId,
+                ["token"] = token
+            });
         }
 
         private async Task<AuthResponse> GenerateJwtTokenAsync(ApplicationUser user, string existingRefreshToken)
