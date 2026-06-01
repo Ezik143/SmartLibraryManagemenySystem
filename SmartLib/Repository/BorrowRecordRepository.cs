@@ -10,14 +10,14 @@ using SmartLib.Models.Settings;
 
 namespace SmartLib.Repository
 {
-    // BorrowRecordRespository - Implements borrow record data access operations
-    public class BorrowRecordRespository : IBorrowRecordRepository
+    // BorrowRecordRepository - Implements borrow record data access operations
+    public class BorrowRecordRepository : IBorrowRecordRepository
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly FineSettings _fineSettings;
 
-        public BorrowRecordRespository(
+        public BorrowRecordRepository(
             ApplicationDbContext context,
             IMapper mapper,
             IOptions<FineSettings> fineOptions)
@@ -218,6 +218,22 @@ namespace SmartLib.Repository
             // Filter records by RETURNED status (books returned with any fines paid)
             var entities = await _context.BorrowRecords.Where(s => s.Status == BorrowRecordStatus.RETURNED)
                                                 .ToListAsync();
+            var dto = _mapper.Map<IEnumerable<BorrowRecordResponseDto>>(entities);
+            return dto;
+        }
+
+        public async Task<IEnumerable<BorrowRecordResponseDto>> GetBorrowRecordByUserIdAsync(string userId)
+        {
+            if (userId == null)
+            {
+                throw new ArgumentNullException(nameof(userId));
+            }
+
+            var entities = await _context.BorrowRecords
+                 .Where(s => s.UserId == userId)
+                 .OrderByDescending(s => s.CreatedAt)
+                 .ToListAsync();
+
             var dto = _mapper.Map<IEnumerable<BorrowRecordResponseDto>>(entities);
             return dto;
         }

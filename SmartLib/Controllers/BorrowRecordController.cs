@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
 using SmartLib.Models.Dto.Create;
 using SmartLib.Models.Dto.Response;
+using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -36,6 +37,27 @@ namespace SmartLib.Controllers
             var borrowRecord = await _borrowRecord.GetBorrowRecordByIdAsync(id);
             return Ok(borrowRecord);
         }
+
+
+        [Authorize]
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult<IEnumerable<BorrowRecordResponseDto>>> GetBorrowRecordByUserId(string userId)
+        {
+            var UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+            if (!isAdmin && UserId != userId)
+            {
+                return Problem(
+    detail: "You do not have permission to view this record.",
+    statusCode: 403
+);
+            }
+
+            var borrowRecord = await _borrowRecord.GetBorrowRecordByUserIdAsync(userId);
+            return Ok(borrowRecord);
+        }
+
+
         [Authorize(Roles = "Admin")]
         [HttpGet("fines/{id}")]
         public async Task<ActionResult<BorrowRecordResponseDto>> GetBorrowRecordWithFine(int id)
@@ -43,6 +65,7 @@ namespace SmartLib.Controllers
             var borrowRecord = await _borrowRecord.GetBorrowRecordWithFineAsync(id);
             return Ok(borrowRecord);
         }
+
 
 
         // POST api/<BorrowRecordDto>
