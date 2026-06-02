@@ -64,9 +64,12 @@ namespace SmartLib.Repository
                 throw new Exception("Invalid password");
             }
 
-            var tokenValue = await GenerateJwtTokenAsync(user, string.Empty);
-
             var response = _mapper.Map<ApplicationUserResponse>(user);
+            var tokenValue = await GenerateJwtTokenAsync(user, string.Empty);
+            response.Token = tokenValue.Token;
+            response.RefreshToken = tokenValue.RefreshToken;
+            response.ExpireAt = tokenValue.ExpireAt;
+
             return response;
         }
 

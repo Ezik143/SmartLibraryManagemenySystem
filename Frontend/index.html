@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLib Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+</head>
+<body data-page="dashboard">
+    <div class="app-shell" id="dashboard-page">
+        <aside class="sidebar">
+            <div class="brand">
+                <span class="brand-mark">SL</span>
+                <div>
+                    <strong>SmartLib</strong>
+                    <span>Library System</span>
+                </div>
+            </div>
+
+            <nav class="nav-list" aria-label="Main navigation">
+                <a href="#" class="nav-link active">Borrow Records</a>
+                <a href="#" class="nav-link">Books</a>
+                <a href="#" class="nav-link">Students</a>
+                <a href="#" class="nav-link">Teachers</a>
+                <a href="#" class="nav-link">Fines</a>
+            </nav>
+
+            <div class="session-box" id="session-box">
+                <span id="session-name">Signed in</span>
+                <button class="text-button" id="logout-button" type="button">Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">Library Dashboard</p>
+                    <h1>Borrow Records</h1>
+                </div>
+                <a href="#record-form" class="primary-action" id="new-record-link">New Record</a>
+            </header>
+
+            <section class="status-line" id="message" role="status" aria-live="polite">
+                Loading dashboard.
+            </section>
+
+            <section class="stats-grid" aria-label="Borrow record summary">
+                <article class="stat-card">
+                    <span>Total Records</span>
+                    <strong id="stat-total">0</strong>
+                </article>
+                <article class="stat-card">
+                    <span>Borrowed</span>
+                    <strong id="stat-borrowed">0</strong>
+                </article>
+                <article class="stat-card">
+                    <span>Overdue</span>
+                    <strong id="stat-overdue">0</strong>
+                </article>
+                <article class="stat-card">
+                    <span>Returned</span>
+                    <strong id="stat-returned">0</strong>
+                </article>
+            </section>
+
+            <section class="toolbar" aria-label="Record controls">
+                <label class="search-box">
+                    <span>Search</span>
+                    <input id="search-input" type="search" placeholder="User ID, Book ID, or status">
+                </label>
+
+                <label>
+                    <span>Status</span>
+                    <select id="status-filter">
+                        <option value="">All</option>
+                        <option value="BORROWED">Borrowed</option>
+                        <option value="RETURNED">Returned</option>
+                        <option value="OVERDUE">Overdue</option>
+                        <option value="LOST">Lost</option>
+                    </select>
+                </label>
+
+                <div class="toolbar-actions">
+                    <button class="secondary-action" id="load-all-button" type="button">All</button>
+                    <button class="secondary-action" id="load-mine-button" type="button">Mine</button>
+                    <button class="secondary-action" id="load-overdue-button" type="button">Overdue</button>
+                    <button class="secondary-action" id="load-returned-button" type="button">Returned</button>
+                </div>
+            </section>
+
+            <section class="content-grid">
+                <form class="panel record-form" id="record-form">
+                    <div class="section-heading">
+                        <h2 id="form-title">Create Borrow Record</h2>
+                        <span id="editing-label">New</span>
+                    </div>
+
+                    <label>
+                        <span>User ID</span>
+                        <input id="user-id" type="text" name="userId" placeholder="Enter user ID" required>
+                    </label>
+
+                    <label>
+                        <span>Book ID</span>
+                        <input id="book-id" type="number" name="bookId" min="1" placeholder="Enter book ID" required>
+                    </label>
+
+                    <div class="form-row">
+                        <label>
+                            <span>Borrow Date</span>
+                            <input id="borrow-date" type="date" name="borrowDate" required>
+                        </label>
+                        <label>
+                            <span>Due Date</span>
+                            <input id="due-date" type="date" name="dueDate" required>
+                        </label>
+                    </div>
+
+                    <label>
+                        <span>Return Date</span>
+                        <input id="return-date" type="date" name="returnDate">
+                    </label>
+
+                    <label>
+                        <span>Status</span>
+                        <select id="record-status" name="status">
+                            <option value="BORROWED">BORROWED</option>
+                            <option value="RETURNED">RETURNED</option>
+                            <option value="OVERDUE">OVERDUE</option>
+                            <option value="LOST">LOST</option>
+                        </select>
+                    </label>
+
+                    <div class="form-actions">
+                        <button class="secondary-action" id="cancel-edit-button" type="button">Cancel</button>
+                        <button class="primary-action" type="submit">Save Record</button>
+                    </div>
+                </form>
+
+                <section class="panel records-panel">
+                    <div class="section-heading">
+                        <h2>Records</h2>
+                        <span id="record-count">0 shown</span>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Record ID</th>
+                                    <th>User ID</th>
+                                    <th>Book ID</th>
+                                    <th>Borrow Date</th>
+                                    <th>Due Date</th>
+                                    <th>Return Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="records-body">
+                                <tr>
+                                    <td colspan="8" class="empty-cell">No records loaded.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

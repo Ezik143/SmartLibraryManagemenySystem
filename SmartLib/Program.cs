@@ -16,7 +16,11 @@ using SmartLib.Services;
 using System.Text;
 using System.Text.Json.Serialization;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    WebRootPath = "../Frontend"
+});
 
 // Add services to the container.
 
@@ -113,6 +117,8 @@ if (app.Environment.IsDevelopment())
 await SeedRolesAsync(app.Services);
 
 app.UseHttpsRedirection();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 
