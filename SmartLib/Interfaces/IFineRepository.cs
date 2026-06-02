@@ -7,6 +7,7 @@ namespace SmartLib.Interfaces
     {
         Task<IEnumerable<FineResponseDto>> GetAllFinesAsync();
         Task<FineResponseDto> GetFineByIdAsync(int id);
+        Task<IEnumerable<FineResponseDto>> GetFinesByUserIdAsync(string userId);
         Task<FineResponseDto> CreateFineAsync(CreateFineDto request);
         Task<FineResponseDto> UpdateFineAsync(int id, CreateFineDto request);
         Task DeleteFineAsync(int id);

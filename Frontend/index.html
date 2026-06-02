@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="styles.css">
     <script src="app.js" defer></script>
 </head>
+
 <body data-page="dashboard">
     <div class="app-shell" id="dashboard-page">
         <aside class="sidebar">
@@ -19,11 +21,10 @@
             </div>
 
             <nav class="nav-list" aria-label="Main navigation">
-                <a href="#" class="nav-link active">Borrow Records</a>
-                <a href="#" class="nav-link">Books</a>
-                <a href="#" class="nav-link">Students</a>
-                <a href="#" class="nav-link">Teachers</a>
-                <a href="#" class="nav-link">Fines</a>
+                <a href="#" class="nav-link active" data-section="borrow-records">Borrow Records</a>
+                <a href="#" class="nav-link" data-section="books">Books</a>
+                <a href="#" class="nav-link admin-only hidden" data-section="students">Students</a>
+                <a href="#" class="nav-link" data-section="fines">Fines</a>
             </nav>
 
             <div class="session-box" id="session-box">
@@ -33,115 +34,318 @@
         </aside>
 
         <main class="main-content">
-            <header class="topbar">
-                <div>
-                    <p class="eyebrow">Library Dashboard</p>
-                    <h1>Borrow Records</h1>
-                </div>
-                <a href="#record-form" class="primary-action" id="new-record-link">New Record</a>
-            </header>
-
-            <section class="status-line" id="message" role="status" aria-live="polite">
-                Loading dashboard.
-            </section>
-
-            <section class="stats-grid" aria-label="Borrow record summary">
-                <article class="stat-card">
-                    <span>Total Records</span>
-                    <strong id="stat-total">0</strong>
-                </article>
-                <article class="stat-card">
-                    <span>Borrowed</span>
-                    <strong id="stat-borrowed">0</strong>
-                </article>
-                <article class="stat-card">
-                    <span>Overdue</span>
-                    <strong id="stat-overdue">0</strong>
-                </article>
-                <article class="stat-card">
-                    <span>Returned</span>
-                    <strong id="stat-returned">0</strong>
-                </article>
-            </section>
-
-            <section class="toolbar" aria-label="Record controls">
-                <label class="search-box">
-                    <span>Search</span>
-                    <input id="search-input" type="search" placeholder="User ID, Book ID, or status">
-                </label>
-
-                <label>
-                    <span>Status</span>
-                    <select id="status-filter">
-                        <option value="">All</option>
-                        <option value="BORROWED">Borrowed</option>
-                        <option value="RETURNED">Returned</option>
-                        <option value="OVERDUE">Overdue</option>
-                        <option value="LOST">Lost</option>
-                    </select>
-                </label>
-
-                <div class="toolbar-actions">
-                    <button class="secondary-action" id="load-all-button" type="button">All</button>
-                    <button class="secondary-action" id="load-mine-button" type="button">Mine</button>
-                    <button class="secondary-action" id="load-overdue-button" type="button">Overdue</button>
-                    <button class="secondary-action" id="load-returned-button" type="button">Returned</button>
-                </div>
-            </section>
-
-            <section class="content-grid">
-                <form class="panel record-form" id="record-form">
-                    <div class="section-heading">
-                        <h2 id="form-title">Create Borrow Record</h2>
-                        <span id="editing-label">New</span>
+            <!-- ====== BORROW RECORDS SECTION ====== -->
+            <section class="dashboard-section" id="section-borrow-records">
+                <header class="topbar">
+                    <div>
+                        <p class="eyebrow">Library Dashboard</p>
+                        <h1>Borrow Records</h1>
                     </div>
+                    <a href="#record-form" class="primary-action" id="new-record-link">New Record</a>
+                </header>
 
-                    <label>
-                        <span>User ID</span>
-                        <input id="user-id" type="text" name="userId" placeholder="Enter user ID" required>
-                    </label>
+                <section class="status-line" id="message" role="status" aria-live="polite">
+                    Loading dashboard.
+                </section>
 
-                    <label>
-                        <span>Book ID</span>
-                        <input id="book-id" type="number" name="bookId" min="1" placeholder="Enter book ID" required>
-                    </label>
+                <section class="stats-grid" aria-label="Borrow record summary">
+                    <article class="stat-card">
+                        <span>Total Records</span>
+                        <strong id="stat-total">0</strong>
+                    </article>
+                    <article class="stat-card">
+                        <span>Borrowed</span>
+                        <strong id="stat-borrowed">0</strong>
+                    </article>
+                    <article class="stat-card">
+                        <span>Overdue</span>
+                        <strong id="stat-overdue">0</strong>
+                    </article>
+                    <article class="stat-card">
+                        <span>Returned</span>
+                        <strong id="stat-returned">0</strong>
+                    </article>
+                </section>
 
-                    <div class="form-row">
-                        <label>
-                            <span>Borrow Date</span>
-                            <input id="borrow-date" type="date" name="borrowDate" required>
-                        </label>
-                        <label>
-                            <span>Due Date</span>
-                            <input id="due-date" type="date" name="dueDate" required>
-                        </label>
-                    </div>
-
-                    <label>
-                        <span>Return Date</span>
-                        <input id="return-date" type="date" name="returnDate">
+                <section class="toolbar" aria-label="Record controls">
+                    <label class="search-box">
+                        <span>Search</span>
+                        <input id="search-input" type="search" placeholder="User ID, Book ID, or status">
                     </label>
 
                     <label>
                         <span>Status</span>
-                        <select id="record-status" name="status">
-                            <option value="BORROWED">BORROWED</option>
-                            <option value="RETURNED">RETURNED</option>
-                            <option value="OVERDUE">OVERDUE</option>
-                            <option value="LOST">LOST</option>
+                        <select id="status-filter">
+                            <option value="">All</option>
+                            <option value="BORROWED">Borrowed</option>
+                            <option value="RETURNED">Returned</option>
+                            <option value="OVERDUE">Overdue</option>
+                            <option value="LOST">Lost</option>
                         </select>
                     </label>
 
-                    <div class="form-actions">
-                        <button class="secondary-action" id="cancel-edit-button" type="button">Cancel</button>
-                        <button class="primary-action" type="submit">Save Record</button>
+                    <div class="toolbar-actions">
+                        <button class="secondary-action" id="load-all-button" type="button">All</button>
+                        <button class="secondary-action" id="load-mine-button" type="button">Mine</button>
+                        <button class="secondary-action" id="load-overdue-button" type="button">Overdue</button>
+                        <button class="secondary-action" id="load-returned-button" type="button">Returned</button>
                     </div>
-                </form>
+                </section>
 
-                <section class="panel records-panel">
+                <section class="content-grid">
+                    <form class="panel record-form" id="record-form">
+                        <div class="section-heading">
+                            <h2 id="form-title">Create Borrow Record</h2>
+                            <span id="editing-label">New</span>
+                        </div>
+
+                        <label>
+                            <span>User ID</span>
+                            <input id="user-id" type="text" name="userId" placeholder="Enter user ID" required>
+                        </label>
+
+                        <label>
+                            <span>Book ID</span>
+                            <input id="book-id" type="number" name="bookId" min="1" placeholder="Enter book ID"
+                                required>
+                        </label>
+
+                        <div class="form-row">
+                            <label>
+                                <span>Borrow Date</span>
+                                <input id="borrow-date" type="date" name="borrowDate" required>
+                            </label>
+                            <label>
+                                <span>Due Date</span>
+                                <input id="due-date" type="date" name="dueDate" required>
+                            </label>
+                        </div>
+
+                        <label>
+                            <span>Return Date</span>
+                            <input id="return-date" type="date" name="returnDate">
+                        </label>
+
+                        <label>
+                            <span>Status</span>
+                            <select id="record-status" name="status">
+                                <option value="BORROWED">BORROWED</option>
+                                <option value="RETURNED">RETURNED</option>
+                                <option value="OVERDUE">OVERDUE</option>
+                                <option value="LOST">LOST</option>
+                            </select>
+                        </label>
+
+                        <div class="form-actions">
+                            <button class="secondary-action" id="cancel-edit-button" type="button">Cancel</button>
+                            <button class="primary-action" type="submit">Save Record</button>
+                        </div>
+                    </form>
+
+                    <section class="panel records-panel">
+                        <div class="section-heading">
+                            <h2>Records</h2>
+                            <span id="record-count">0 shown</span>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Record ID</th>
+                                        <th>User ID</th>
+                                        <th>Book ID</th>
+                                        <th>Borrow Date</th>
+                                        <th>Due Date</th>
+                                        <th>Return Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="records-body">
+                                    <tr>
+                                        <td colspan="8" class="empty-cell">No records loaded.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </section>
+            </section>
+
+            <!-- ====== BOOKS SECTION ====== -->
+            <section class="dashboard-section hidden" id="section-books">
+                <header class="topbar">
+                    <div>
+                        <p class="eyebrow">Library Dashboard</p>
+                        <h1>Books</h1>
+                    </div>
+                    <a href="#book-form" class="primary-action" id="new-book-link">New Book</a>
+                </header>
+
+                <section class="status-line" id="book-message" role="status" aria-live="polite">
+                    Loading books...
+                </section>
+
+                <section class="toolbar" aria-label="Book controls">
+                    <label class="search-box">
+                        <span>Search by name</span>
+                        <input id="book-search" type="search" placeholder="Search by book title...">
+                    </label>
+                    <label>
+                        <span>&nbsp;</span>
+                        <button class="primary-action full-width" id="book-search-btn" type="button">Search</button>
+                    </label>
+                    <div class="toolbar-actions" style="grid-template-columns:1fr;">
+                        <button class="secondary-action" id="load-all-books" type="button">All Books</button>
+                    </div>
+                </section>
+
+                <section class="content-grid">
+                    <form class="panel record-form hidden" id="book-form">
+                        <div class="section-heading">
+                            <h2 id="book-form-title">Create Book</h2>
+                            <span id="book-editing-label">New</span>
+                        </div>
+
+                        <label>
+                            <span>Title</span>
+                            <input id="book-title" type="text" placeholder="Book title" required>
+                        </label>
+                        <label>
+                            <span>Author</span>
+                            <input id="book-author" type="text" placeholder="Author name" required>
+                        </label>
+                        <label>
+                            <span>ISBN</span>
+                            <input id="book-isbn" type="text" placeholder="ISBN">
+                        </label>
+                        <label>
+                            <span>Category</span>
+                            <input id="book-category" type="text" placeholder="e.g. Fiction, Science">
+                        </label>
+                        <div class="form-row">
+                            <label>
+                                <span>Published Year</span>
+                                <input id="book-year" type="number" placeholder="2024">
+                            </label>
+                            <label>
+                                <span>Available Copies</span>
+                                <input id="book-copies" type="number" value="1" min="0">
+                            </label>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="secondary-action" id="cancel-book-edit" type="button">Cancel</button>
+                            <button class="primary-action" id="save-book-btn" type="button">Save Book</button>
+                        </div>
+                    </form>
+
+                    <section class="panel records-panel">
+                        <div class="section-heading">
+                            <h2>Books</h2>
+                            <span id="book-count">0 shown</span>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Title</th>
+                                        <th>Author</th>
+                                        <th>ISBN</th>
+                                        <th>Category</th>
+                                        <th>Year</th>
+                                        <th>Copies</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="books-body">
+                                    <tr>
+                                        <td colspan="8" class="empty-cell">No books loaded.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </section>
+            </section>
+
+            <!-- ====== STUDENTS SECTION ====== -->
+            <section class="dashboard-section hidden" id="section-students">
+                <header class="topbar">
+                    <div>
+                        <p class="eyebrow">Library Dashboard</p>
+                        <h1>Students</h1>
+                    </div>
+                </header>
+
+                <section class="status-line" id="student-message" role="status" aria-live="polite">
+                    Loading students...
+                </section>
+
+                <section class="toolbar" aria-label="Student controls" style="grid-template-columns:1fr auto;">
+                    <label>
+                        <span>&nbsp;</span>
+                        <button class="primary-action full-width" id="load-all-students" type="button">Refresh
+                            Students</button>
+                    </label>
+                </section>
+
+                <section class="panel">
                     <div class="section-heading">
-                        <h2>Records</h2>
-                        <span id="record-count">0 shown</span>
+                        <h2>Students</h2>
+                        <span id="student-count">0 shown</span>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>User ID</th>
+                                    <th>Email</th>
+                                    <th>Section</th>
+                                    <th>Year Level</th>
+                                    <th>Created At</th>
+                                    <th>Active</th>
+                                </tr>
+                            </thead>
+                            <tbody id="students-body">
+                                <tr>
+                                    <td colspan="6" class="empty-cell">No students loaded.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+
+            <!-- ====== FINES SECTION ====== -->
+            <section class="dashboard-section hidden" id="section-fines">
+                <header class="topbar">
+                    <div>
+                        <p class="eyebrow">Library Dashboard</p>
+                        <h1>Fines</h1>
+                    </div>
+                </header>
+
+                <section class="status-line" id="fine-message" role="status" aria-live="polite">
+                    Loading fines...
+                </section>
+
+                <section class="toolbar" aria-label="Fine controls" style="grid-template-columns:1fr auto;">
+                    <label>
+                        <span>&nbsp;</span>
+                        <button class="primary-action full-width" id="load-all-fines" type="button">Refresh
+                            Fines</button>
+                    </label>
+                </section>
+
+                <section class="panel">
+                    <div class="section-heading">
+                        <h2>Fines</h2>
+                        <span id="fine-count">0 shown</span>
                     </div>
 
                     <div class="table-wrap">
@@ -150,17 +354,16 @@
                                 <tr>
                                     <th>Record ID</th>
                                     <th>User ID</th>
-                                    <th>Book ID</th>
-                                    <th>Borrow Date</th>
-                                    <th>Due Date</th>
-                                    <th>Return Date</th>
+                                    <th>Amount</th>
                                     <th>Status</th>
+                                    <th>Paid At</th>
+                                    <th>Created At</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="records-body">
+                            <tbody id="fines-body">
                                 <tr>
-                                    <td colspan="8" class="empty-cell">No records loaded.</td>
+                                    <td colspan="7" class="empty-cell">No fines loaded.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -170,4 +373,5 @@
         </main>
     </div>
 </body>
+
 </html>
