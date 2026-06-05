@@ -9,6 +9,7 @@ namespace SmartLib.Interfaces
         Task<StudentResponseDto> RegisterStudentAsync(CreateStudentDto request);
         Task<TeacherResponseDto> RegisterTeacherAsync(CreateTeacherDto request);
         Task ConfirmEmailAsync(string userId, string token);
+        Task ResendConfirmationEmailAsync(string email);
         Task<AuthResponse> RefreshTokenAsync(string email, string refreshToken);
     }
 }

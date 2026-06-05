@@ -114,8 +114,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-await SeedRolesAsync(app.Services);
-
 app.UseHttpsRedirection();
 app.UseDefaultFiles();
 app.UseStaticFiles();
@@ -126,23 +124,3 @@ app.MapControllers();
 
 app.Run();
 
-static async Task SeedRolesAsync(IServiceProvider services)
-{
-    using var scope = services.CreateScope();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-    foreach (var role in Enum.GetNames<UserRole>())
-    {
-        if (await roleManager.RoleExistsAsync(role))
-        {
-            continue;
-        }
-
-        var result = await roleManager.CreateAsync(new IdentityRole(role));
-        if (!result.Succeeded)
-        {
-            var errors = string.Join("; ", result.Errors.Select(error => error.Description));
-            throw new InvalidOperationException($"Could not create role '{role}'. {errors}");
-        }
-    }
-}

@@ -58,6 +58,11 @@ namespace SmartLib.Repository
                 throw new Exception("User not found");
             }
 
+            if(!await _userManager.IsEmailConfirmedAsync(user))
+            {
+                throw new Exception("Email not confirmed");
+            }
+
             var isMatch = await _userManager.CheckPasswordAsync(user, password);
             if (!isMatch)
             {
@@ -223,6 +228,25 @@ namespace SmartLib.Repository
             }
         }
 
+
+        public async Task ResendConfirmationEmailAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                throw new ArgumentException("Email is required to resend confirmation email.", nameof(email));
+            }
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found.");
+            }
+            if (await _userManager.IsEmailConfirmedAsync(user))
+            {
+                throw new InvalidOperationException("Email is already confirmed.");
+            }
+            await SendConfirmationEmailAsync(user);
+        }
+
         private async Task SendConfirmationEmailAsync(ApplicationUser user)
         {
             if (string.IsNullOrWhiteSpace(user.Email))
@@ -263,6 +287,8 @@ namespace SmartLib.Repository
                 ["token"] = token
             });
         }
+
+        
 
         private async Task<AuthResponse> GenerateJwtTokenAsync(ApplicationUser user, string existingRefreshToken)
         {

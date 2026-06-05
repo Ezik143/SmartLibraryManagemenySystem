@@ -45,5 +45,12 @@ namespace SmartLib.Controllers
             await _authRepository.ConfirmEmailAsync(userId, token);
             return Ok(new { Message = "Email confirmed successfully." });
         }
+
+        [HttpPost("resend-confirmation-email")]
+        public async Task<IActionResult> ResendConfirmationEmail([FromBody] ResendConfirmationEmailDto request)
+        {
+            await _authRepository.ResendConfirmationEmailAsync(request.Email);
+            return Ok(new { Message = "Confirmation email resent successfully." });
+        }
     }
 }
