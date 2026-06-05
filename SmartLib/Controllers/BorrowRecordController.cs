@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
 using SmartLib.Models.Dto.Create;
 using SmartLib.Models.Dto.Response;
+using SmartLib.Models.Entities;
 using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -101,6 +102,38 @@ namespace SmartLib.Controllers
         {
             var borrowRecord = await _borrowRecord.ReturnBookAsync(id);
             return Ok(borrowRecord);
+        }
+
+        // POST api/<BorrowRecordDto>/borrow/{bookId} - Self-service borrow for students/teachers
+        [Authorize(Roles = "Student,Teacher")]
+        [HttpPost("borrow/{bookId}")]
+        public async Task<ActionResult<BorrowRecordResponseDto>> BorrowBook(int bookId)
+        {
+            if (bookId <= 0)
+            {
+                return BadRequest(new { detail = "Invalid book ID." });
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { detail = "User not found." });
+            }
+
+            var borrowDate = DateTime.UtcNow;
+            var dueDate = borrowDate.AddDays(14);
+
+            var request = new CreateBorrowRecordDto
+            {
+                UserId = userId,
+                BookId = bookId,
+                BorrowDate = borrowDate,
+                DueDate = dueDate,
+                Status = BorrowRecordStatus.BORROWED
+            };
+
+            var borrowRecord = await _borrowRecord.CreateBorrowRecordAsync(request);
+            return CreatedAtAction(nameof(GetBorrowRecordById), new { id = borrowRecord.BorrowRecordId }, borrowRecord);
         }
         [Authorize(Roles = "Admin")]
         [HttpGet("Overdue")]

@@ -499,7 +499,7 @@ function initBooksSection() {
         }
     }
 
-    function renderBooks() {
+function renderBooks() {
         count.textContent = `${state.books.length} shown`;
         if (state.books.length === 0) {
             tbody.innerHTML = '<tr><td colspan="8" class="empty-cell">No books found.</td></tr>';
@@ -507,10 +507,16 @@ function initBooksSection() {
         }
         tbody.innerHTML = state.books.map(book => {
             const id = getValue(book, "bookId");
-            const actions = isAdminUser()
-                ? `<button class="table-button" type="button" data-book-action="edit" data-book-id="${id}">Edit</button>
-                   <button class="table-button" type="button" data-book-action="delete" data-book-id="${id}">Delete</button>`
-                : '<span class="muted-text">View only</span>';
+            const availableCopies = getValue(book, "availableCopies") || 0;
+            let actions;
+            if (isAdminUser()) {
+                actions = `<button class="table-button" type="button" data-book-action="edit" data-book-id="${id}">Edit</button>
+                           <button class="table-button" type="button" data-book-action="delete" data-book-id="${id}">Delete</button>`;
+            } else if (availableCopies > 0) {
+                actions = `<button class="table-button" type="button" data-book-action="borrow" data-book-id="${id}">Borrow</button>`;
+            } else {
+                actions = '<span class="muted-text">Not available</span>';
+            }
             return `<tr>
                 <td>${id}</td>
                 <td>${escapeHtml(getValue(book, "title") || "")}</td>
@@ -518,10 +524,22 @@ function initBooksSection() {
                 <td>${escapeHtml(getValue(book, "isbn") || "")}</td>
                 <td>${escapeHtml(getValue(book, "category") || "")}</td>
                 <td>${getValue(book, "publishedYear") || "-"}</td>
-                <td>${getValue(book, "availableCopies") ?? "0"}</td>
+                <td>${availableCopies}</td>
                 <td><div class="row-actions">${actions}</div></td>
             </tr>`;
-        }).join("");
+}).join("");
+    }
+
+async function borrowBook(bookId) {
+        if (!bookId || bookId <= 0) { setMsg("Invalid book ID.", true); return; }
+        setMsg("Borrowing book...");
+        try {
+            await apiRequest(`/api/BorrowRecord/borrow/${bookId}`, { method: "POST" });
+            await loadBooks();
+            setMsg("Book borrowed successfully! Check 'My Records' to view your borrowed books.");
+        } catch (error) {
+            setMsg(error.message, true);
+        }
     }
 
     function getBookFormData() {
@@ -590,11 +608,17 @@ function initBooksSection() {
         }
     });
 
-    tbody.addEventListener("click", event => {
+tbody.addEventListener("click", event => {
         const btn = event.target.closest("button[data-book-action]");
         if (!btn) return;
         const action = btn.dataset.bookAction;
         const id = Number(btn.dataset.bookId);
+
+        if (action === "borrow") {
+            if (!isSignedIn()) { window.location.href = "login.html"; return; }
+            if (isAdminUser()) { setMsg("Admin users must use the borrow record form to lend books.", true); return; }
+            borrowBook(id);
+        }
 
         if (action === "edit") {
             if (!isAdminUser()) { setMsg("Only admins can edit books.", true); return; }
