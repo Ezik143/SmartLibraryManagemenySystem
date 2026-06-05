@@ -10,7 +10,8 @@ namespace SmartLib.Models.Dto.Profiles
         public ApplicationUserProfile()
         {
             CreateMap<CreateApplicationUserDto, ApplicationUser>();
-            CreateMap<ApplicationUser, ApplicationUserResponse>();
+            CreateMap<ApplicationUser, ApplicationUserResponse>()
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id));
         }
     }
 }

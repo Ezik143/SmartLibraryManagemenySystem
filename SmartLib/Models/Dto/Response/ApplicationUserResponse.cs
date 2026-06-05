@@ -11,5 +11,8 @@ namespace SmartLib.Models.Dto.Response
         public bool IsAdmin { get; set; }
         public Department Department { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string Token { get; set; } = string.Empty;
+        public string RefreshToken { get; set; } = string.Empty;
+        public DateTime? ExpireAt { get; set; }
     }
 }

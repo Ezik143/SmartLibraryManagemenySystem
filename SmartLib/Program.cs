@@ -2,6 +2,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -9,14 +10,24 @@ using SmartLib.Data;
 using SmartLib.Interfaces;
 using SmartLib.Models.Entities;
 using SmartLib.Models.Settings;
+using SmartLib.Option;
 using SmartLib.Repository;
 using SmartLib.Services;
 using System.Text;
 using System.Text.Json.Serialization;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    WebRootPath = "../Frontend"
+});
 
 // Add services to the container.
+
+var jwtSecret = builder.Configuration["JWT:Secret"] ?? throw new InvalidOperationException("JWT:Secret is missing in configuration.");
+var jwtIssuer = builder.Configuration["JWT:ValidIssuer"] ?? throw new InvalidOperationException("JWT:ValidIssuer is missing in configuration.");
+var jwtAudience = builder.Configuration["JWT:ValidAudience"] ?? throw new InvalidOperationException("JWT:ValidAudience is missing in configuration.");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -29,10 +40,9 @@ var tokenValidationParameters = new TokenValidationParameters
     ValidateAudience = true,
     ValidateLifetime = true,
     ValidateIssuerSigningKey = true,        
-    ValidIssuer = builder.Configuration["JWT:issuer"],
-    ValidAudience = builder.Configuration["JWT:audience"],
-    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-        builder.Configuration["JWT:key"] ?? throw new InvalidOperationException("JWT key is missing in configuration."))),
+    ValidIssuer = jwtIssuer,
+    ValidAudience = jwtAudience,
+    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
     ClockSkew = TimeSpan.Zero // Optional: Set clock skew to zero to prevent token expiration issues
 };
 
@@ -48,7 +58,17 @@ builder.Services.AddOptions<FineSettings>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
+
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddOptions<SmtpOption>()
+    .Bind(builder.Configuration.GetSection(SmtpOption.Smtp))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
 builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddScoped<IBorrowRecordRepository, BorrowRecordRepository>();
 builder.Services.AddScoped<IFineRepository, FineRepository>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
@@ -76,11 +96,7 @@ builder.Services.AddHostedService<OverdueService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        var jwtKey = builder.Configuration["Jwt:Key"];
-        var jwtIssuer = builder.Configuration["Jwt:Issuer"];
-        var jwtAudience = builder.Configuration["Jwt:Audience"];
-
-        if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
+        if (string.IsNullOrEmpty(jwtSecret) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
             throw new InvalidOperationException("JWT configuration is missing in appsettings.json");
 
         options.TokenValidationParameters = tokenValidationParameters;
@@ -98,10 +114,35 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+await SeedRolesAsync(app.Services);
+
 app.UseHttpsRedirection();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+
+static async Task SeedRolesAsync(IServiceProvider services)
+{
+    using var scope = services.CreateScope();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    foreach (var role in Enum.GetNames<UserRole>())
+    {
+        if (await roleManager.RoleExistsAsync(role))
+        {
+            continue;
+        }
+
+        var result = await roleManager.CreateAsync(new IdentityRole(role));
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(error => error.Description));
+            throw new InvalidOperationException($"Could not create role '{role}'. {errors}");
+        }
+    }
+}

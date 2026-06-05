@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - SmartLib</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+</head>
+
+<body data-page="login">
+    <main class="auth-page">
+        <section class="auth-panel" aria-labelledby="login-title">
+            <div class="brand auth-brand">
+                <span class="brand-mark">SL</span>
+                <div>
+                    <strong>SmartLib</strong>
+                    <span>Library System</span>
+                </div>
+            </div>
+
+            <div class="auth-header">
+                <p class="eyebrow">Welcome Back</p>
+                <h1 id="login-title">Sign In</h1>
+            </div>
+
+            <div id="toast-container" class="toast-container"></div>
+
+            <form class="auth-form" id="login-form">
+                <label>
+                    <span>Email</span>
+                    <input id="email" type="email" autocomplete="email" required>
+                </label>
+                <label>
+                    <span>Password</span>
+                    <input id="password" type="password" autocomplete="current-password" required>
+                </label>
+                <button class="primary-action full-width" id="login-button" type="submit">Sign In</button>
+            </form>
+
+            <p class="auth-footer">
+                Need an account?
+                <a href="signup.html">Create one</a>
+            </p>
+        </section>
+    </main>
+</body>
+
+</html>

@@ -58,6 +58,16 @@ namespace SmartLib.Repository
             return dto;
         }
 
+        public async Task<IEnumerable<FineResponseDto>> GetFinesByUserIdAsync(string userId)
+        {
+            var entities = await _context.Fines
+                .Where(f => f.UserId == userId)
+                .ToListAsync();
+
+            var dto = _mapper.Map<IEnumerable<FineResponseDto>>(entities);
+            return dto;
+        }
+
         public async Task<FineResponseDto> GetFineByIdAsync(int id)
         {
             // Find fine by ID

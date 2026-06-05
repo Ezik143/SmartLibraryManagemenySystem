@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SmartLib.Interfaces;
 using SmartLib.Models.Dto.Create;
 using SmartLib.Models.Dto.Response;
+using System.Security.Claims;
 // FineController - Handles HTTP requests for fine management operations (CRUD)
 
 namespace SmartLib.Controllers
@@ -26,6 +27,20 @@ namespace SmartLib.Controllers
             var entitiesDto = await _fine.GetAllFinesAsync();
             return Ok(entitiesDto);
         }
+        [Authorize]
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult<IEnumerable<FineResponseDto>>> GetFinesByUserId(string userId)
+        {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+            if (!isAdmin && currentUserId != userId)
+            {
+                return Problem(detail: "You do not have permission to view these fines.", statusCode: 403);
+            }
+            var entitiesDto = await _fine.GetFinesByUserIdAsync(userId);
+            return Ok(entitiesDto);
+        }
+
         [Authorize(Roles = "Admin")]
         // GET api/<FineController>/5
         [HttpGet("{id}")]

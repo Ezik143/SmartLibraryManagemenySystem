@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - SmartLib</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+</head>
+
+<body data-page="signup">
+    <main class="auth-page">
+        <section class="auth-panel wide-auth-panel" aria-labelledby="signup-title">
+            <div class="brand auth-brand">
+                <span class="brand-mark">SL</span>
+                <div>
+                    <strong>SmartLib</strong>
+                    <span>Library System</span>
+                </div>
+            </div>
+
+            <div class="auth-header">
+                <p class="eyebrow">New Account</p>
+                <h1 id="signup-title">Sign Up</h1>
+            </div>
+
+            <div id="toast-container" class="toast-container"></div>
+
+            <form class="auth-form" id="signup-form">
+                <label>
+                    <span>Account Type</span>
+                    <select id="signup-role">
+                        <option value="Student">Student</option>
+                        <option value="Teacher">Teacher</option>
+                    </select>
+                </label>
+
+                <label>
+                    <span>Name</span>
+                    <input id="signup-name" type="text" autocomplete="name" required>
+                </label>
+
+                <label>
+                    <span>Email</span>
+                    <input id="signup-email" type="email" autocomplete="email" required>
+                </label>
+
+                <label>
+                    <span>Password</span>
+                    <input id="signup-password" type="password" autocomplete="new-password" required>
+                </label>
+
+                <label>
+                    <span>Department</span>
+                    <select id="signup-department">
+                        <option value="Elementary">Elementary</option>
+                        <option value="SeniorHighSchool">Senior High School</option>
+                        <option value="College">College</option>
+                        <option value="Tvet">TVET</option>
+                    </select>
+                </label>
+
+                <div class="student-fields" id="student-fields">
+                    <div class="form-row">
+                        <label>
+                            <span>Section</span>
+                            <input id="signup-section" type="text" required>
+                        </label>
+                        <label>
+                            <span>Year Level</span>
+                            <input id="signup-year-level" type="text" required>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="teacher-fields hidden" id="teacher-fields">
+                    <label>
+                        <span>Department ID</span>
+                        <input id="signup-department-id" type="number" min="1" value="1">
+                    </label>
+                </div>
+
+                <button class="primary-action full-width" id="signup-button" type="submit">Create Account</button>
+            </form>
+
+            <p class="auth-footer">
+                Already have an account?
+                <a href="login.html">Sign in</a>
+            </p>
+        </section>
+    </main>
+</body>
+
+</html>

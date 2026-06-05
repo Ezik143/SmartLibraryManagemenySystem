@@ -7,6 +7,7 @@ namespace SmartLib.Interfaces
     {
         Task<IEnumerable<BorrowRecordResponseDto>> GetAllBorrowRecordAsync();
         Task<BorrowRecordResponseDto> GetBorrowRecordByIdAsync(int id);
+        Task<IEnumerable<BorrowRecordResponseDto>> GetBorrowRecordByUserIdAsync(string userId);
         Task<BorrowRecordResponseDto> GetBorrowRecordWithFineAsync(int id);
         Task<BorrowRecordResponseDto> CreateBorrowRecordAsync(CreateBorrowRecordDto request);
         Task<BorrowRecordResponseDto> UpdateBorrowRecordAsync(int id, CreateBorrowRecordDto request);

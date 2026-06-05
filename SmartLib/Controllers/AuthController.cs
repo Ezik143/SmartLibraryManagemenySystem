@@ -38,5 +38,12 @@ namespace SmartLib.Controllers
             var response = await _authRepository.RegisterTeacherAsync(request);
             return Ok(response);
         }
+
+        [HttpGet("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
+        {
+            await _authRepository.ConfirmEmailAsync(userId, token);
+            return Ok(new { Message = "Email confirmed successfully." });
+        }
     }
 }
