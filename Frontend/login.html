@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="styles.css">
     <script src="app.js" defer></script>
 </head>
+
 <body data-page="login">
     <main class="auth-page">
         <section class="auth-panel" aria-labelledby="login-title">
@@ -23,9 +25,7 @@
                 <h1 id="login-title">Sign In</h1>
             </div>
 
-            <section class="status-line auth-message" id="auth-message" role="status" aria-live="polite">
-                Enter your account details to continue.
-            </section>
+            <div id="toast-container" class="toast-container"></div>
 
             <form class="auth-form" id="login-form">
                 <label>
@@ -46,4 +46,5 @@
         </section>
     </main>
 </body>
+
 </html>

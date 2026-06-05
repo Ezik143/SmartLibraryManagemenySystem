@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="styles.css">
     <script src="app.js" defer></script>
 </head>
+
 <body data-page="signup">
     <main class="auth-page">
         <section class="auth-panel wide-auth-panel" aria-labelledby="signup-title">
@@ -23,9 +25,7 @@
                 <h1 id="signup-title">Sign Up</h1>
             </div>
 
-            <section class="status-line auth-message" id="auth-message" role="status" aria-live="polite">
-                Create a student or teacher account.
-            </section>
+            <div id="toast-container" class="toast-container"></div>
 
             <form class="auth-form" id="signup-form">
                 <label>
@@ -91,4 +91,5 @@
         </section>
     </main>
 </body>
+
 </html>

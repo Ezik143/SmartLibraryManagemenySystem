@@ -46,6 +46,78 @@ function setStatus(element, text, isError = false) {
     element.classList.toggle("error", isError);
 }
 
+// ---------- TOAST NOTIFICATION SYSTEM ----------
+let toastContainer = null;
+
+function initToastContainer() {
+    if (!toastContainer) {
+        toastContainer = document.getElementById("toast-container");
+        if (!toastContainer) {
+            toastContainer = document.createElement("div");
+            toastContainer.id = "toast-container";
+            toastContainer.className = "toast-container";
+            document.body.appendChild(toastContainer);
+        }
+    }
+    return toastContainer;
+}
+
+function showToast(message, type, duration) {
+    const container = initToastContainer();
+    if (!type) type = "info";
+    if (!duration) {
+        duration = (type === "error" || type === "warning") ? 6000 : 4000;
+    }
+
+    const toast = document.createElement("div");
+    toast.className = "toast " + type;
+
+    const icon = document.createElement("span");
+    icon.className = "toast-icon";
+    toast.appendChild(icon);
+
+    const body = document.createElement("span");
+    body.className = "toast-body";
+    body.textContent = message;
+    toast.appendChild(body);
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "toast-close";
+    closeBtn.innerHTML = "&times;";
+    closeBtn.addEventListener("click", function () {
+        dismissToast(toast);
+    });
+    toast.appendChild(closeBtn);
+
+    container.appendChild(toast);
+
+    if (duration > 0) {
+        setTimeout(function () {
+            dismissToast(toast);
+        }, duration);
+    }
+
+    return toast;
+}
+
+function dismissToast(toastElement) {
+    if (!toastElement || toastElement.classList.contains("fade-out")) return;
+    toastElement.classList.add("fade-out");
+    setTimeout(function () {
+        if (toastElement.parentNode) {
+            toastElement.parentNode.removeChild(toastElement);
+        }
+    }, 300);
+}
+
+function dismissAllToasts() {
+    if (!toastContainer) return;
+    var toasts = toastContainer.querySelectorAll(".toast");
+    for (var i = 0; i < toasts.length; i++) {
+        dismissToast(toasts[i]);
+    }
+}
+
 function setButtonLoading(button, isLoading, text) {
     if (!button) return;
     if (!button.dataset.defaultText) {
@@ -139,16 +211,15 @@ function initLoginPage() {
     const email = document.getElementById("email");
     const password = document.getElementById("password");
     const button = document.getElementById("login-button");
-    const message = document.getElementById("auth-message");
     const signupEmail = sessionStorage.getItem(SIGNUP_EMAIL);
     if (signupEmail) {
         email.value = signupEmail;
         sessionStorage.removeItem(SIGNUP_EMAIL);
-        setStatus(message, "Account created. Sign in to continue.");
+        showToast("Account created. Sign in to continue.", "success");
     }
     form.addEventListener("submit", async event => {
         event.preventDefault();
-        setStatus(message, "Signing in...");
+        showToast("Signing in...", "info");
         setButtonLoading(button, true, "Signing In");
         try {
             const user = await apiRequest("/api/Auth/login", {
@@ -158,7 +229,7 @@ function initLoginPage() {
             persistSession(user);
             window.location.href = "index.html";
         } catch (error) {
-            setStatus(message, error.message, true);
+            showToast(error.message, "error");
         } finally {
             setButtonLoading(button, false);
         }
@@ -182,7 +253,6 @@ function initSignupPage() {
     const studentFields = document.getElementById("student-fields");
     const teacherFields = document.getElementById("teacher-fields");
     const button = document.getElementById("signup-button");
-    const message = document.getElementById("auth-message");
 
     function updateSignupFields() {
         const isTeacher = role.value === "Teacher";
@@ -197,7 +267,7 @@ function initSignupPage() {
 
     form.addEventListener("submit", async event => {
         event.preventDefault();
-        setStatus(message, "Creating account...");
+        showToast("Creating account...", "info");
         setButtonLoading(button, true, "Creating");
         const payload = {
             name: name.value.trim(),
@@ -220,7 +290,7 @@ function initSignupPage() {
             sessionStorage.setItem(SIGNUP_EMAIL, payload.email);
             window.location.href = "login.html";
         } catch (error) {
-            setStatus(message, error.message, true);
+            showToast(error.message, "error");
         } finally {
             setButtonLoading(button, false);
         }
@@ -238,7 +308,7 @@ function initDashboardPage() {
     const elements = {
         logoutButton: document.getElementById("logout-button"),
         sessionName: document.getElementById("session-name"),
-        message: document.getElementById("message"),
+        message: null,
         recordForm: document.getElementById("record-form"),
         newRecordLink: document.getElementById("new-record-link"),
         formTitle: document.getElementById("form-title"),
@@ -264,7 +334,7 @@ function initDashboardPage() {
         statReturned: document.getElementById("stat-returned")
     };
 
-    function setMsg(text, isError = false) { setStatus(elements.message, text, isError); }
+    function setMsg(text, isError = false) { /* no-op - using showToast */ }
 
     function renderSession() {
         const displayName = getValue(state.user, "name") || getValue(state.user, "email") || "Signed in";
@@ -283,7 +353,7 @@ function initDashboardPage() {
 
     async function loadRecords(view) {
         if (view) state.currentView = view;
-        setMsg("Loading records...");
+        showToast("Loading records...", "info");
         try {
             let path = "/api/BorrowRecord";
             if (state.currentView === "mine") {
@@ -296,9 +366,9 @@ function initDashboardPage() {
             const records = await apiRequest(path);
             state.records = Array.isArray(records) ? records : [];
             renderRecords();
-            setMsg(`${state.records.length} record(s) loaded.`);
+            showToast(`${state.records.length} record(s) loaded.`, "success");
         } catch (error) {
-            setMsg(error.message, true);
+            showToast(error.message, "error");
         }
     }
 
@@ -318,19 +388,19 @@ function initDashboardPage() {
         const payload = getFormPayload();
         const isEditing = state.editingId !== null;
         const path = isEditing ? `/api/BorrowRecord/${state.editingId}` : "/api/BorrowRecord";
-        setMsg(isEditing ? "Updating record..." : "Creating record...");
+        showToast(isEditing ? "Updating record..." : "Creating record...", "info");
         try {
             await apiRequest(path, { method: isEditing ? "PUT" : "POST", body: JSON.stringify(payload) });
             resetForm();
             await loadRecords(state.currentView);
-            setMsg(isEditing ? "Record updated." : "Record created.");
+            showToast(isEditing ? "Record updated." : "Record created.", "success");
         } catch (error) {
-            setMsg(error.message, true);
+            showToast(error.message, "error");
         }
     }
 
     function editRecord(recordId) {
-        if (!isAdminUser()) { setMsg("Only admin accounts can edit borrow records.", true); return; }
+        if (!isAdminUser()) { showToast("Only admin accounts can edit borrow records.", "error"); return; }
         const record = state.records.find(item => String(getValue(item, "borrowRecordId")) === String(recordId));
         if (!record) return;
         state.editingId = recordId;
@@ -353,27 +423,27 @@ function initDashboardPage() {
     }
 
     async function deleteRecord(recordId) {
-        if (!isAdminUser()) { setMsg("Only admin accounts can delete borrow records.", true); return; }
+        if (!isAdminUser()) { showToast("Only admin accounts can delete borrow records.", "error"); return; }
         if (!confirm(`Delete borrow record #${recordId}?`)) return;
-        setMsg("Deleting record...");
+        showToast("Deleting record...", "info");
         try {
             await apiRequest(`/api/BorrowRecord/${recordId}`, { method: "DELETE" });
             await loadRecords(state.currentView);
-            setMsg("Record deleted.");
+            showToast("Record deleted.", "success");
         } catch (error) {
-            setMsg(error.message, true);
+            showToast(error.message, "error");
         }
     }
 
     async function returnRecord(recordId) {
-        if (!isAdminUser()) { setMsg("Only admin accounts can return books from this dashboard.", true); return; }
-        setMsg("Returning book...");
+        if (!isAdminUser()) { showToast("Only admin accounts can return books from this dashboard.", "error"); return; }
+        showToast("Returning book...", "info");
         try {
             await apiRequest(`/api/BorrowRecord/return/${recordId}`, { method: "POST" });
             await loadRecords(state.currentView);
-            setMsg("Book returned.");
+            showToast("Book returned.", "success");
         } catch (error) {
-            setMsg(error.message, true);
+            showToast(error.message, "error");
         }
     }
 
@@ -464,7 +534,6 @@ function initDashboardPage() {
 //  BOOKS — non-admin can browse & search; admin has full CRUD
 // =====================================================================
 function initBooksSection() {
-    const msg = document.getElementById("book-message");
     const tbody = document.getElementById("books-body");
     const count = document.getElementById("book-count");
     const form = document.getElementById("book-form");
@@ -481,10 +550,10 @@ function initBooksSection() {
         form.classList.add("hidden");
     }
 
-    function setMsg(text, isError = false) { setStatus(msg, text, isError); }
+    function setMsg(text, isError = false) { /* kept for guards - using showToast instead */ }
 
     async function loadBooks(searchName) {
-        setMsg("Loading books...");
+        showToast("Loading books...", "info");
         try {
             let path = "/api/Book";
             if (searchName && searchName.trim()) {
@@ -493,9 +562,9 @@ function initBooksSection() {
             const data = await apiRequest(path);
             state.books = Array.isArray(data) ? data : [data].filter(Boolean);
             renderBooks();
-            setMsg(`${state.books.length} book(s) loaded.`);
+            showToast(`${state.books.length} book(s) loaded.`, "success");
         } catch (error) {
-            setMsg(error.message, true);
+            showToast(error.message, "error");
         }
     }
 
@@ -531,14 +600,14 @@ function renderBooks() {
     }
 
 async function borrowBook(bookId) {
-        if (!bookId || bookId <= 0) { setMsg("Invalid book ID.", true); return; }
-        setMsg("Borrowing book...");
+        if (!bookId || bookId <= 0) { showToast("Invalid book ID.", "error"); return; }
+        showToast("Borrowing book...", "info");
         try {
             await apiRequest(`/api/BorrowRecord/borrow/${bookId}`, { method: "POST" });
             await loadBooks();
-            setMsg("Book borrowed successfully! Check 'My Records' to view your borrowed books.");
+            showToast("Book borrowed successfully! Check 'My Records' to view your borrowed books.", "success");
         } catch (error) {
-            setMsg(error.message, true);
+            showToast(error.message, "error");
         }
     }
 
@@ -577,7 +646,7 @@ async function borrowBook(bookId) {
 
     newLink.addEventListener("click", event => {
         event.preventDefault();
-        if (!isAdminUser()) { setMsg("Only admins can create books.", true); return; }
+        if (!isAdminUser()) { showToast("Only admins can create books.", "error"); return; }
         resetBookForm();
         form.classList.remove("hidden");
         form.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -586,23 +655,23 @@ async function borrowBook(bookId) {
     cancelBtn.addEventListener("click", resetBookForm);
 
     saveBtn.addEventListener("click", async () => {
-        if (!isAdminUser()) { setMsg("Only admins can modify books.", true); return; }
+        if (!isAdminUser()) { showToast("Only admins can modify books.", "error"); return; }
         const payload = getBookFormData();
         if (!payload.title || !payload.author) {
-            setMsg("Title and author are required.", true);
+            showToast("Title and author are required.", "error");
             return;
         }
         const isEditing = state.bookEditingId !== null;
         const path = isEditing ? `/api/Book/${state.bookEditingId}` : "/api/Book";
-        setMsg(isEditing ? "Updating book..." : "Creating book...");
+        showToast(isEditing ? "Updating book..." : "Creating book...", "info");
         setButtonLoading(saveBtn, true, isEditing ? "Updating..." : "Saving...");
         try {
             await apiRequest(path, { method: isEditing ? "PUT" : "POST", body: JSON.stringify(payload) });
             resetBookForm();
             await loadBooks();
-            setMsg(isEditing ? "Book updated." : "Book created.");
+            showToast(isEditing ? "Book updated." : "Book created.", "success");
         } catch (error) {
-            setMsg(error.message, true);
+            showToast(error.message, "error");
         } finally {
             setButtonLoading(saveBtn, false);
         }
@@ -616,12 +685,12 @@ tbody.addEventListener("click", event => {
 
         if (action === "borrow") {
             if (!isSignedIn()) { window.location.href = "login.html"; return; }
-            if (isAdminUser()) { setMsg("Admin users must use the borrow record form to lend books.", true); return; }
+            if (isAdminUser()) { showToast("Admin users must use the borrow record form to lend books.", "error"); return; }
             borrowBook(id);
         }
 
         if (action === "edit") {
-            if (!isAdminUser()) { setMsg("Only admins can edit books.", true); return; }
+            if (!isAdminUser()) { showToast("Only admins can edit books.", "error"); return; }
             const book = state.books.find(b => Number(getValue(b, "bookId")) === id);
             if (!book) return;
             state.bookEditingId = id;
@@ -633,13 +702,13 @@ tbody.addEventListener("click", event => {
         }
 
         if (action === "delete") {
-            if (!isAdminUser()) { setMsg("Only admins can delete books.", true); return; }
+            if (!isAdminUser()) { showToast("Only admins can delete books.", "error"); return; }
             if (!confirm(`Delete book #${id}?`)) return;
-            setMsg("Deleting book...");
+            showToast("Deleting book...", "info");
             apiRequest(`/api/Book/${id}`, { method: "DELETE" })
                 .then(() => loadBooks())
-                .then(() => setMsg("Book deleted."))
-                .catch(err => setMsg(err.message, true));
+                .then(() => showToast("Book deleted.", "success"))
+                .catch(err => showToast(err.message, "error"));
         }
     });
 
@@ -652,22 +721,21 @@ tbody.addEventListener("click", event => {
 //  STUDENTS — admin only
 // =====================================================================
 function initStudentsSection() {
-    const msg = document.getElementById("student-message");
     const tbody = document.getElementById("students-body");
     const count = document.getElementById("student-count");
     const loadBtn = document.getElementById("load-all-students");
 
-    function setMsg(text, isError = false) { setStatus(msg, text, isError); }
+    function setMsg(text, isError = false) { /* kept for compatibility */ }
 
     async function loadStudents() {
-        setMsg("Loading students...");
+        showToast("Loading students...", "info");
         try {
             const data = await apiRequest("/api/Student");
             state.students = Array.isArray(data) ? data : [];
             renderStudents();
-            setMsg(`${state.students.length} student(s) loaded.`);
+            showToast(`${state.students.length} student(s) loaded.`, "success");
         } catch (error) {
-            setMsg(error.message, true);
+            showToast(error.message, "error");
         }
     }
 
@@ -694,15 +762,14 @@ function initStudentsSection() {
 //  FINES — admin sees all; non-admin sees their own fines
 // =====================================================================
 function initFinesSection() {
-    const msg = document.getElementById("fine-message");
     const tbody = document.getElementById("fines-body");
     const count = document.getElementById("fine-count");
     const loadBtn = document.getElementById("load-all-fines");
 
-    function setMsg(text, isError = false) { setStatus(msg, text, isError); }
+    function setMsg(text, isError = false) { /* kept for compatibility */ }
 
     async function loadFines() {
-        setMsg("Loading fines...");
+        showToast("Loading fines...", "info");
         try {
             let path = "/api/Fine";
             if (!isAdminUser()) {
@@ -713,9 +780,9 @@ function initFinesSection() {
             const data = await apiRequest(path);
             state.fines = Array.isArray(data) ? data : [];
             renderFines();
-            setMsg(`${state.fines.length} fine(s) loaded.`);
+            showToast(`${state.fines.length} fine(s) loaded.`, "success");
         } catch (error) {
-            setMsg(error.message, true);
+            showToast(error.message, "error");
         }
     }
 
