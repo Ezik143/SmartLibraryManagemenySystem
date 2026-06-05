@@ -205,6 +205,14 @@ function escapeHtml(value) {
 // =====================================================================
 //  LOGIN
 // =====================================================================
+function resendConfirmationEmail(email) {
+    return apiRequest("/api/Auth/resend-confirmation-email", {
+        method: "POST",
+        auth: false,
+        body: JSON.stringify({ email: email })
+    });
+}
+
 function initLoginPage() {
     if (isSignedIn()) { window.location.replace("index.html"); return; }
     const form = document.getElementById("login-form");
@@ -212,13 +220,56 @@ function initLoginPage() {
     const password = document.getElementById("password");
     const button = document.getElementById("login-button");
     const signupEmail = sessionStorage.getItem(SIGNUP_EMAIL);
+    const resendSection = document.getElementById("resend-confirmation-section");
+    const resendBtn = document.getElementById("resend-confirmation-btn");
+    const resendStatus = document.getElementById("resend-status");
+
+    function hideResendSection() {
+        resendSection.classList.add("hidden");
+        resendStatus.classList.add("hidden");
+        resendStatus.textContent = "";
+    }
+
+    function showResendSection() {
+        resendSection.classList.remove("hidden");
+        resendStatus.classList.add("hidden");
+    }
+
+    function setResendStatus(text, isError) {
+        resendStatus.textContent = text;
+        resendStatus.classList.toggle("error", isError);
+        resendStatus.classList.remove("hidden");
+    }
+
     if (signupEmail) {
         email.value = signupEmail;
         sessionStorage.removeItem(SIGNUP_EMAIL);
         showToast("Account created. Sign in to continue.", "success");
     }
+
+    resendBtn.addEventListener("click", async function () {
+        const emailValue = email.value.trim();
+        if (!emailValue) {
+            showToast("Please enter your email address first.", "error");
+            return;
+        }
+        setButtonLoading(resendBtn, true, "Resending...");
+        try {
+            await resendConfirmationEmail(emailValue);
+            showToast("Confirmation email resent successfully. Please check your inbox.", "success");
+            setResendStatus("Confirmation email resent successfully.", false);
+            hideResendSection();
+        } catch (error) {
+            showToast(error.message, "error");
+            setResendStatus(error.message, true);
+        } finally {
+            setButtonLoading(resendBtn, false);
+        }
+    });
+
     form.addEventListener("submit", async event => {
         event.preventDefault();
+        hideResendSection();
         showToast("Signing in...", "info");
         setButtonLoading(button, true, "Signing In");
         try {
@@ -230,6 +281,9 @@ function initLoginPage() {
             window.location.href = "index.html";
         } catch (error) {
             showToast(error.message, "error");
+            if (error.message.toLowerCase().includes("email not confirmed")) {
+                showResendSection();
+            }
         } finally {
             setButtonLoading(button, false);
         }
